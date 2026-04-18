@@ -1,11 +1,23 @@
+import Dependencies
 import SwiftUI
 
 public struct ContentView: View {
-    public init() {}
+    @Dependency(\.axPermissionManager) var axPermissionManager
 
     public var body: some View {
-        Text("Hello, World!")
-            .padding()
+        VStack {
+            Text("Hello, World!")
+                .padding()
+
+            Button(
+                action: {
+                    self.axPermissionManager.checkAxStatus(true)
+                },
+                label: {
+                    Text("Check ax permissions")
+                }
+            )
+        }
     }
 }
 
