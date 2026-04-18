@@ -65,7 +65,9 @@ let project = Project(
                 .folder("\(appName)/Resources")
             ],
             scripts: [swiftLintScript],
-            dependencies: [],
+            dependencies: [
+                .external(name: "Dependencies")
+            ],
             settings: appSettings
         ),
         .target(
