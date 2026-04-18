@@ -1,0 +1,11 @@
+--swiftversion 6
+--exclude Derived,Plakaki.xcodeproj,Plakaki.xcworkspace
+--indent 4
+--linebreaks lf
+--maxwidth 120
+--trimwhitespace always
+--commas inline
+--decimalgrouping 3,6
+--hexgrouping 4,8
+--binarygrouping 4,8
+--octalgrouping 4,8

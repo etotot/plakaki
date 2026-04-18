@@ -1,0 +1,24 @@
+[tools]
+tuist = "4.182.0"
+swiftformat = "0.61.0"
+swiftlint = "0.63.2"
+
+[tasks.format]
+description = "Format Swift sources with SwiftFormat"
+run = "swiftformat ."
+
+[tasks."format:check"]
+description = "Check Swift formatting without writing changes"
+run = "swiftformat . --lint"
+
+[tasks.lint]
+description = "Lint Swift sources with SwiftLint"
+run = "swiftlint lint --strict --no-cache"
+
+[tasks."lint:fix"]
+description = "Apply autocorrectable SwiftLint fixes"
+run = "swiftlint --fix --no-cache"
+
+[tasks.generate]
+description = "Generate the Xcode project with Tuist"
+run = "tuist generate --no-open"

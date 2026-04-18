@@ -1,0 +1,5 @@
+// Copy to Config/Signing.xcconfig for machine-specific signing settings.
+CODE_SIGN_STYLE = Automatic
+DEVELOPMENT_TEAM = S7SG3U6WCA
+CODE_SIGN_IDENTITY = Apple Development
+PROVISIONING_PROFILE_SPECIFIER =
