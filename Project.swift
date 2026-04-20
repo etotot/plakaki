@@ -55,6 +55,19 @@ let project = Project(
     name: appName,
     targets: [
         .target(
+            name: "GroundControl",
+            destinations: .macOS,
+            product: .framework,
+            bundleId: "\(bundleIdPrefix).GroundControl",
+            buildableFolders: [
+                .folder("GroundControl/Sources")
+            ],
+            scripts: [swiftLintScript],
+            dependencies: [
+                .external(name: "Dependencies")
+            ],
+        ),
+        .target(
             name: appName,
             destinations: .macOS,
             product: .app,
@@ -66,6 +79,7 @@ let project = Project(
             ],
             scripts: [swiftLintScript],
             dependencies: [
+                .target(name: "GroundControl"),
                 .external(name: "Dependencies")
             ],
             settings: appSettings
