@@ -22,6 +22,8 @@ public struct ContentView: View {
             Button("Start app Monitoring") {
                 appEnumerator.enumerateApps()
             }
+
+            DisplaysView()
         }
     }
 }
