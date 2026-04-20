@@ -1,4 +1,4 @@
-import AppKit
+@preconcurrency import AppKit
 @preconcurrency import ApplicationServices
 import Foundation
 
