@@ -2,6 +2,7 @@ import Dependencies
 import SwiftUI
 
 public struct ContentView: View {
+    let appEnumerator: AppEnumerator
     @Dependency(\.axPermissionManager) var axPermissionManager
 
     public var body: some View {
@@ -11,18 +12,22 @@ public struct ContentView: View {
 
             Button(
                 action: {
-                    self.axPermissionManager.checkAxStatus(true)
+                    _ = axPermissionManager.checkAxStatus(true)
                 },
                 label: {
                     Text("Check ax permissions")
                 }
             )
+
+            Button("Start app Monitoring") {
+                appEnumerator.enumerateApps()
+            }
         }
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        ContentView(appEnumerator: .init())
     }
 }
