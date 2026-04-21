@@ -129,6 +129,11 @@ private enum EventFixture {
             state: ObservedWindowState(title: "Terminal")
         )
 
+        static let updatedTerminal = ObservedWindow(
+            id: WindowID.terminal,
+            state: ObservedWindowState(title: "Terminal Updated")
+        )
+
         static let browser = ObservedWindow(
             id: WindowID.browser,
             state: ObservedWindowState(title: "Browser")
@@ -136,9 +141,19 @@ private enum EventFixture {
     }
 
     enum Space {
+        static let empty = ObservedSpace(id: SpaceID.primary)
+
         static let primary = ObservedSpace(
             id: SpaceID.primary,
             windows: [Window.terminal]
+        )
+
+        static let primaryWithTwoWindows = ObservedSpace(
+            id: SpaceID.primary,
+            windows: [
+                Window.terminal,
+                Window.browser,
+            ]
         )
 
         static let secondary = ObservedSpace(
@@ -148,10 +163,22 @@ private enum EventFixture {
     }
 
     enum Display {
+        static let mainWithEmptySpace = ObservedDisplay(
+            id: DisplayID.main,
+            activeSpaceId: SpaceID.primary,
+            spaces: [Space.empty]
+        )
+
         static let main = ObservedDisplay(
             id: DisplayID.main,
             activeSpaceId: SpaceID.primary,
             spaces: [Space.primary]
+        )
+
+        static let mainWithTwoWindowSpace = ObservedDisplay(
+            id: DisplayID.main,
+            activeSpaceId: SpaceID.primary,
+            spaces: [Space.primaryWithTwoWindows]
         )
 
         static let mainWithTwoSpaces = ObservedDisplay(
@@ -171,8 +198,16 @@ private enum EventFixture {
     }
 
     enum Snapshot {
+        static let oneDisplayEmptySpace = WorkspaceSnapshot(
+            displays: [Display.mainWithEmptySpace]
+        )
+
         static let oneDisplayOneSpace = WorkspaceSnapshot(
             displays: [Display.main]
+        )
+
+        static let oneDisplayTwoWindowSpace = WorkspaceSnapshot(
+            displays: [Display.mainWithTwoWindowSpace]
         )
 
         static let oneDisplayTwoSpaces = WorkspaceSnapshot(
@@ -220,7 +255,7 @@ private enum EventFixture {
         )
 
         static let windowUpdated = WorkspaceEvent.observation(
-            .windowUpdated(Window.terminal, spaceId: SpaceID.primary)
+            .windowUpdated(Window.updatedTerminal, spaceId: SpaceID.primary)
         )
 
         static let windowRemoved = WorkspaceEvent.observation(
