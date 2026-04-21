@@ -10,6 +10,43 @@ import Testing
 @testable import FlightDeck
 
 struct WorkspaceGraphTests {
+    // MARK: - Display Transformation
+
+    @Test func displayIdIsPreserved() async {
+        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.multipleDisplays)
+        let root = await graph.snapshot()
+
+        #expect(root.displays[0].id == "main-display")
+        #expect(root.displays[1].id == "external-display")
+    }
+
+    // MARK: - Space Transformation
+
+    @Test func spaceIdIsPreserved() async {
+        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.emptySpace)
+        let root = await graph.snapshot()
+
+        #expect(root.displays[0].spaces[0].id == 1)
+    }
+
+    @Test func activeSpaceBecomesFocusedSpace() async {
+        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.activeSecondarySpace)
+        let root = await graph.snapshot()
+
+        #expect(root.displays[0].focusedSpaceId == 2)
+    }
+
+    @Test func spacesArePreservedInOrder() async {
+        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.activeSecondarySpace)
+        let root = await graph.snapshot()
+
+        #expect(
+            root.displays[0].spaces.map(\.id) == [
+                Fixture.SpaceID.primary,
+                Fixture.SpaceID.secondary,
+            ])
+    }
+
     // MARK: - Window Transformation
 
     @Test func emptySpaceCreatesNoTiledRoot() async {
