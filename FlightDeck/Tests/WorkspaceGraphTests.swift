@@ -5,11 +5,52 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
-import Testing
 @testable import FlightDeck
+import Testing
 
 struct WorkspaceGraphTests {
+    // MARK: - Window transformation
 
+    @Test func emptySpaceCreatesNoTiledRoot() async {
+        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.emptySpace)
+        let root = await graph.snapshot()
+
+        #expect(root.displays[0].spaces[0].tiledRoot == nil)
+    }
+
+    @Test func singleWindowSpaceCreatesStack() async throws {
+        let fixture = Fixture.Snapshot.oneTileableWindow
+        let graph = WorkspaceGraph(snapshot: fixture)
+        let root = await graph.snapshot()
+
+        let tiledRoot = root.displays[0].spaces[0].tiledRoot
+        #expect(
+            try tiledRoot
+                == .stack(
+                    direction: .horizontal,
+                    children: [
+                        .leaf(windowId: #require(fixture.displays[0].spaces[0].windows.first?.id))
+                    ]
+                )
+        )
+    }
+
+    @Test func multipleWindowSpaceCreatesStack() async {
+        let fixture = Fixture.Snapshot.multipleTileableWindows
+        let graph = WorkspaceGraph(snapshot: fixture)
+        let root = await graph.snapshot()
+
+        let tiledRoot = root.displays[0].spaces[0].tiledRoot
+        #expect(
+            tiledRoot
+                == .stack(
+                    direction: .horizontal,
+                    children: fixture.displays[0].spaces[0].windows.map {
+                        .leaf(windowId: $0.id)
+                    }
+                )
+        )
+    }
 }
 
 private enum Fixture {

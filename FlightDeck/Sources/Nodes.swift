@@ -57,8 +57,8 @@ public struct Space: Identifiable, Sendable {
     }
 }
 
-public indirect enum Container: Sendable {
-    public enum LayoutDirection: Sendable {
+public indirect enum Container: Sendable, Equatable {
+    public enum LayoutDirection: Sendable, Equatable {
         case vertical
         case horizontal
     }

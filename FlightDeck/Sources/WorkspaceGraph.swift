@@ -15,6 +15,10 @@ public actor WorkspaceGraph {
         root = Self.transform(snapshot: snapshot)
     }
 
+    func snapshot() -> Root {
+        root
+    }
+
     // MARK: - Graph Conversion
 
     // TODO: Consider moving to separate file
