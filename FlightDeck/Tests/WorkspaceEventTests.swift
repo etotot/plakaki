@@ -105,6 +105,65 @@ struct WorkspaceEventTests {
             root.displays[0].spaces[0].id == EventFixture.SpaceID.primary
         )
     }
+
+    // MARK: - Window Events
+
+    @Test func windowDiscovered() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayEmptySpace)
+
+        await graph.handle(EventFixture.Observation.windowDiscovered)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays[0].spaces[0].tiledRoot ==
+                .stack(direction: .horizontal, children: [
+                    .leaf(windowId: EventFixture.WindowID.terminal)
+                ])
+        )
+    }
+
+    @Test func windowUpdated() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayOneSpace)
+
+        await graph.handle(EventFixture.Observation.windowUpdated)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays[0].spaces[0].tiledRoot ==
+                .stack(direction: .horizontal, children: [
+                    .leaf(windowId: EventFixture.WindowID.terminal)
+                ])
+        )
+    }
+
+    @Test func windowRemoved() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayOneSpace)
+
+        await graph.handle(EventFixture.Observation.windowRemoved)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays[0].spaces[0].tiledRoot == nil
+        )
+    }
+
+    @Test func windowMoved() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayTwoSpaces)
+
+        await graph.handle(EventFixture.Observation.windowMoved)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays[0].spaces[1].tiledRoot ==
+                .stack(
+                    direction: .horizontal,
+                    children: [
+                        .leaf(windowId: EventFixture.WindowID.browser),
+                        .leaf(windowId: EventFixture.WindowID.terminal)
+                    ]
+                )
+        )
+    }
 }
 
 private enum EventFixture {
@@ -152,7 +211,7 @@ private enum EventFixture {
             id: SpaceID.primary,
             windows: [
                 Window.terminal,
-                Window.browser,
+                Window.browser
             ]
         )
 

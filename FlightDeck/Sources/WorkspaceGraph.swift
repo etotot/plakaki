@@ -48,8 +48,29 @@ public actor WorkspaceGraph {
         case let .spaceRemoved(spaceId, displayId):
             root.remove(spaceId: spaceId, displayId: displayId)
 
-        default:
-            return
+        case let .windowDiscovered(window, spaceId):
+            guard window.state.isTileable, !window.state.isMinimized else {
+                return
+            }
+
+            root.appendTiledWindow(window.id, spaceId: spaceId)
+
+        case let .windowUpdated(window, spaceId):
+            if window.state.isTileable, !window.state.isMinimized {
+                root.appendTiledWindow(window.id, spaceId: spaceId)
+            } else {
+                root.removeWindow(window.id)
+            }
+
+        case let .windowRemoved(windowId):
+            root.removeWindow(windowId)
+
+        case let .windowMoved(windowId, fromSpaceId, toSpaceId):
+            root.moveWindow(
+                windowId,
+                fromSpaceId: fromSpaceId,
+                toSpaceId: toSpaceId
+            )
         }
     }
 

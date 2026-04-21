@@ -64,6 +64,52 @@ public struct Root: Sendable {
 
         displays[index].remove(spaceId: spaceId)
     }
+
+    mutating func appendTiledWindow(_ windowId: WindowId, spaceId: Space.ID) {
+        for displayIndex in displays.indices {
+            guard let spaceIndex = displays[displayIndex].spaces.firstIndex(
+                where: { $0.id == spaceId }
+            ) else {
+                continue
+            }
+
+            displays[displayIndex].spaces[spaceIndex].appendTiledWindow(windowId)
+            return
+        }
+    }
+
+    mutating func removeWindow(_ windowId: WindowId) {
+        // TODO: This naive full graph scan is fine for now, but we should
+        // likely maintain a windowId -> location index once move/remove gets hot.
+        for displayIndex in displays.indices {
+            for spaceIndex in displays[displayIndex].spaces.indices {
+                displays[displayIndex].spaces[spaceIndex].removeWindow(windowId)
+            }
+        }
+    }
+
+    mutating func moveWindow(
+        _ windowId: WindowId,
+        fromSpaceId: Space.ID?,
+        toSpaceId: Space.ID
+    ) {
+        // TODO: This naive full graph scan is fine for now, but we should
+        // likely maintain a windowId -> location index once move/remove gets hot.
+        for displayIndex in displays.indices {
+            for spaceIndex in displays[displayIndex].spaces.indices {
+                let shouldRemove = fromSpaceId == nil
+                    || displays[displayIndex].spaces[spaceIndex].id == fromSpaceId
+
+                guard shouldRemove else {
+                    continue
+                }
+
+                displays[displayIndex].spaces[spaceIndex].removeWindow(windowId)
+            }
+        }
+
+        appendTiledWindow(windowId, spaceId: toSpaceId)
+    }
 }
 
 public struct Display: Identifiable, Sendable {
@@ -116,6 +162,38 @@ public struct Space: Identifiable, Sendable {
         self.floatingWindowIds = floatingWindowIds
         self.focusedWindow = focusedWindow
     }
+
+    mutating func appendTiledWindow(_ windowId: WindowId) {
+        guard tiledRoot?.contains(windowId: windowId) != true else {
+            return
+        }
+
+        let leaf = Container.leaf(windowId: windowId)
+
+        switch tiledRoot {
+        case nil:
+            tiledRoot = .stack(direction: .horizontal, children: [leaf])
+        case let .stack(direction, children):
+            tiledRoot = .stack(direction: direction, children: children + [leaf])
+        case let .leaf(existingWindowId):
+            tiledRoot = .stack(
+                direction: .horizontal,
+                children: [
+                    .leaf(windowId: existingWindowId),
+                    leaf
+                ]
+            )
+        }
+    }
+
+    mutating func removeWindow(_ windowId: WindowId) {
+        tiledRoot = tiledRoot?.removing(windowId: windowId)
+        floatingWindowIds.removeAll { $0 == windowId }
+
+        if focusedWindow == windowId {
+            focusedWindow = nil
+        }
+    }
 }
 
 public indirect enum Container: Sendable, Equatable {
@@ -126,4 +204,33 @@ public indirect enum Container: Sendable, Equatable {
 
     case stack(direction: LayoutDirection, children: [Container])
     case leaf(windowId: WindowId)
+}
+
+private extension Container {
+    func contains(windowId: WindowId) -> Bool {
+        switch self {
+        case let .leaf(leafWindowId):
+            leafWindowId == windowId
+        case let .stack(_, children):
+            children.contains { $0.contains(windowId: windowId) }
+        }
+    }
+
+    func removing(windowId: WindowId) -> Container? {
+        switch self {
+        case let .leaf(leafWindowId):
+            return leafWindowId == windowId ? nil : self
+
+        case let .stack(direction, children):
+            let remainingChildren = children.compactMap {
+                $0.removing(windowId: windowId)
+            }
+
+            guard !remainingChildren.isEmpty else {
+                return nil
+            }
+
+            return .stack(direction: direction, children: remainingChildren)
+        }
+    }
 }
