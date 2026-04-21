@@ -5,8 +5,9 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
-@testable import FlightDeck
 import Testing
+
+@testable import FlightDeck
 
 struct WorkspaceGraphTests {
     // MARK: - Window Transformation
@@ -49,6 +50,32 @@ struct WorkspaceGraphTests {
                         .leaf(windowId: Fixture.WindowID.terminal),
                         .leaf(windowId: Fixture.WindowID.browser),
                         .leaf(windowId: Fixture.WindowID.notes),
+                    ]
+                )
+        )
+    }
+
+    @Test func spaceWithoutTileableWindowsIsEmpty() async {
+        let fixture = Fixture.Snapshot.noTileableWindows
+        let graph = WorkspaceGraph(snapshot: fixture)
+        let root = await graph.snapshot()
+
+        #expect(root.displays[0].spaces[0].tiledRoot == nil)
+    }
+
+    @Test func nonTileableWindowsAreFiltered() async {
+        let fixture = Fixture.Snapshot.mixedWindows
+        let graph = WorkspaceGraph(snapshot: fixture)
+        let root = await graph.snapshot()
+
+        let tiledRoot = root.displays[0].spaces[0].tiledRoot
+        #expect(
+            tiledRoot
+                == .stack(
+                    direction: .horizontal,
+                    children: [
+                        .leaf(windowId: Fixture.WindowID.terminal),
+                        .leaf(windowId: Fixture.WindowID.browser),
                     ]
                 )
         )
@@ -119,7 +146,7 @@ private enum Fixture {
             windows: [
                 Window.terminal,
                 Window.browser,
-                Window.notes
+                Window.notes,
             ]
         )
 
@@ -127,7 +154,7 @@ private enum Fixture {
             id: SpaceID.primary,
             windows: [
                 Window.minimized,
-                Window.dialog
+                Window.dialog,
             ]
         )
 
@@ -137,7 +164,7 @@ private enum Fixture {
                 Window.terminal,
                 Window.minimized,
                 Window.dialog,
-                Window.browser
+                Window.browser,
             ]
         )
     }
