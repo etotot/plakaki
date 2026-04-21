@@ -39,6 +39,15 @@ public actor WorkspaceGraph {
         case let .displayDisconnected(displayId):
             root.remove(displayId: displayId)
 
+        case let .activeSpaceChanged(displayId, spaceId):
+            root.setFocusedSpaceId(spaceId, displayId: displayId)
+
+        case let .spaceAdded(space, displayId):
+            root.append(space: Self.transform(space: space), displayId: displayId)
+
+        case let .spaceRemoved(spaceId, displayId):
+            root.remove(spaceId: spaceId, displayId: displayId)
+
         default:
             return
         }

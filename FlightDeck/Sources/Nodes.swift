@@ -37,6 +37,33 @@ public struct Root: Sendable {
 
         displays.remove(at: index)
     }
+
+    mutating func setFocusedSpaceId(
+        _ spaceId: Space.ID,
+        displayId: Display.ID
+    ) {
+        guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
+            return
+        }
+
+        displays[index].focusedSpaceId = spaceId
+    }
+
+    mutating func append(space: Space, displayId: Display.ID) {
+        guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
+            return
+        }
+
+        displays[index].append(space: space)
+    }
+
+    mutating func remove(spaceId: Space.ID, displayId: Display.ID) {
+        guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
+            return
+        }
+
+        displays[index].remove(spaceId: spaceId)
+    }
 }
 
 public struct Display: Identifiable, Sendable {
@@ -52,6 +79,23 @@ public struct Display: Identifiable, Sendable {
         self.id = id
         self.spaces = spaces
         self.focusedSpaceId = focusedSpaceId
+    }
+
+    mutating func append(space: Space) {
+        if let index = spaces.firstIndex(where: { $0.id == space.id }) {
+            spaces[index] = space
+            return
+        }
+
+        spaces.append(space)
+    }
+
+    mutating func remove(spaceId: Space.ID) {
+        guard let index = spaces.firstIndex(where: { $0.id == spaceId }) else {
+            return
+        }
+
+        spaces.remove(at: index)
     }
 }
 
