@@ -5,9 +5,8 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
-import Testing
-
 @testable import FlightDeck
+import Testing
 
 struct WorkspaceGraphTests {
     // MARK: - Display Transformation
@@ -16,8 +15,8 @@ struct WorkspaceGraphTests {
         let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.multipleDisplays)
         let root = await graph.snapshot()
 
-        #expect(root.displays[0].id == "main-display")
-        #expect(root.displays[1].id == "external-display")
+        #expect(root.displays[0].id == Fixture.DisplayID.main)
+        #expect(root.displays[1].id == Fixture.DisplayID.external)
     }
 
     // MARK: - Space Transformation
@@ -26,14 +25,14 @@ struct WorkspaceGraphTests {
         let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.emptySpace)
         let root = await graph.snapshot()
 
-        #expect(root.displays[0].spaces[0].id == 1)
+        #expect(root.displays[0].spaces[0].id == Fixture.SpaceID.primary)
     }
 
     @Test func activeSpaceBecomesFocusedSpace() async {
         let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.activeSecondarySpace)
         let root = await graph.snapshot()
 
-        #expect(root.displays[0].focusedSpaceId == 2)
+        #expect(root.displays[0].focusedSpaceId == Fixture.SpaceID.secondary)
     }
 
     @Test func spacesArePreservedInOrder() async {
@@ -43,8 +42,9 @@ struct WorkspaceGraphTests {
         #expect(
             root.displays[0].spaces.map(\.id) == [
                 Fixture.SpaceID.primary,
-                Fixture.SpaceID.secondary,
-            ])
+                Fixture.SpaceID.secondary
+            ]
+        )
     }
 
     // MARK: - Window Transformation
@@ -86,7 +86,7 @@ struct WorkspaceGraphTests {
                     children: [
                         .leaf(windowId: Fixture.WindowID.terminal),
                         .leaf(windowId: Fixture.WindowID.browser),
-                        .leaf(windowId: Fixture.WindowID.notes),
+                        .leaf(windowId: Fixture.WindowID.notes)
                     ]
                 )
         )
@@ -112,7 +112,7 @@ struct WorkspaceGraphTests {
                     direction: .horizontal,
                     children: [
                         .leaf(windowId: Fixture.WindowID.terminal),
-                        .leaf(windowId: Fixture.WindowID.browser),
+                        .leaf(windowId: Fixture.WindowID.browser)
                     ]
                 )
         )
@@ -186,7 +186,7 @@ private enum Fixture {
             windows: [
                 Window.terminal,
                 Window.browser,
-                Window.notes,
+                Window.notes
             ]
         )
 
@@ -194,7 +194,7 @@ private enum Fixture {
             id: SpaceID.primary,
             windows: [
                 Window.minimized,
-                Window.dialog,
+                Window.dialog
             ]
         )
 
@@ -204,7 +204,7 @@ private enum Fixture {
                 Window.terminal,
                 Window.minimized,
                 Window.dialog,
-                Window.browser,
+                Window.browser
             ]
         )
     }
@@ -221,7 +221,7 @@ private enum Fixture {
             activeSpaceId: SpaceID.secondary,
             spaces: [
                 Space.empty,
-                Space.secondary,
+                Space.secondary
             ]
         )
 
@@ -256,7 +256,7 @@ private enum Fixture {
         static let multipleDisplays = WorkspaceSnapshot(
             displays: [
                 Display.oneSpace,
-                Display.external,
+                Display.external
             ]
         )
     }
