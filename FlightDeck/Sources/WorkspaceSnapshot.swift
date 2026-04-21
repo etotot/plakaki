@@ -15,12 +15,12 @@ public struct WorkspaceSnapshot: Sendable {
 
 public struct ObservedDisplay: Identifiable, Sendable {
     public var id: Display.ID
-    public var activeSpaceId: Space.ID?
+    public var activeSpaceId: Space.ID
     public var spaces: [ObservedSpace]
 
     public init(
         id: Display.ID,
-        activeSpaceId: Space.ID? = nil,
+        activeSpaceId: Space.ID,
         spaces: [ObservedSpace] = []
     ) {
         self.id = id
