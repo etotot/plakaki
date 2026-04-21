@@ -85,6 +85,7 @@ struct WorkspaceGraphTests {
 private enum Fixture {
     enum DisplayID {
         static let main = "main-display"
+        static let external = "external-display"
     }
 
     enum SpaceID {
@@ -136,6 +137,8 @@ private enum Fixture {
     enum Space {
         static let empty = ObservedSpace(id: SpaceID.primary)
 
+        static let secondary = ObservedSpace(id: SpaceID.secondary)
+
         static let oneTileableWindow = ObservedSpace(
             id: SpaceID.primary,
             windows: [Window.terminal]
@@ -169,6 +172,29 @@ private enum Fixture {
         )
     }
 
+    enum Display {
+        static let oneSpace = ObservedDisplay(
+            id: DisplayID.main,
+            activeSpaceId: SpaceID.primary,
+            spaces: [Space.empty]
+        )
+
+        static let activeSecondarySpace = ObservedDisplay(
+            id: DisplayID.main,
+            activeSpaceId: SpaceID.secondary,
+            spaces: [
+                Space.empty,
+                Space.secondary,
+            ]
+        )
+
+        static let external = ObservedDisplay(
+            id: DisplayID.external,
+            activeSpaceId: SpaceID.secondary,
+            spaces: [Space.secondary]
+        )
+    }
+
     enum Snapshot {
         static let emptySpace = singleDisplaySnapshot(space: Space.empty)
 
@@ -185,6 +211,17 @@ private enum Fixture {
         )
 
         static let mixedWindows = singleDisplaySnapshot(space: Space.mixedWindows)
+
+        static let activeSecondarySpace = WorkspaceSnapshot(
+            displays: [Display.activeSecondarySpace]
+        )
+
+        static let multipleDisplays = WorkspaceSnapshot(
+            displays: [
+                Display.oneSpace,
+                Display.external,
+            ]
+        )
     }
 
     static func singleDisplaySnapshot(space: ObservedSpace) -> WorkspaceSnapshot {
