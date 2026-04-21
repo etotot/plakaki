@@ -93,7 +93,7 @@ let project = Project(
                 .folder("GroundControl/Sources")
             ],
             scripts: [swiftLintScript],
-            dependencies: [],
+            dependencies: []
         ),
         .target(
             name: "FlightDeck",
@@ -105,8 +105,8 @@ let project = Project(
             ],
             scripts: [swiftLintScript],
             dependencies: [
-                .target(name: "GroundControl"),
-            ],
+                .target(name: "GroundControl")
+            ]
         ),
         .target(
             name: "FlightDeckTests",
@@ -118,7 +118,7 @@ let project = Project(
                 .folder("FlightDeck/Tests")
             ],
             dependencies: [.target(name: "FlightDeck")],
-            settings: testSettings,
+            settings: testSettings
         )
     ]
 )

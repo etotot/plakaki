@@ -9,7 +9,7 @@ import Dependencies
 import Foundation
 import GroundControl
 
-struct SpaceManager: Sendable {
+struct SpaceManager {
     var readDisplays: @Sendable () -> [ManagedDisplaySpaces]
     var readWindows: @Sendable (_ space: ManagedSpace) -> [CGSWindowID]
 }

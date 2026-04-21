@@ -28,8 +28,8 @@ private final class DisplaysViewModel {
     }
 
     init() {
-        self.displays = spaceManager.readDisplays()
-        self.selectedDisplayIdentifier = displays.first?.displayIdentifier
+        displays = spaceManager.readDisplays()
+        selectedDisplayIdentifier = displays.first?.displayIdentifier
     }
 }
 

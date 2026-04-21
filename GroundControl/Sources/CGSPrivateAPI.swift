@@ -67,7 +67,7 @@ public enum CGSPrivateAPI {
         owner: UInt32 = 0,
         options: UInt32 = 2,
         setTags: UInt64 = 0,
-        clearTags: UInt64 = 0x4000000000
+        clearTags: UInt64 = 0x40_0000_0000
     ) throws -> [CGSWindowID] {
         let function: CGSCopyWindowsWithOptionsAndTagsFn =
             try loadSymbol(named: "CGSCopyWindowsWithOptionsAndTags")

@@ -26,8 +26,8 @@ public struct WindowSpaceChange: Hashable, Sendable {
 
 public enum WindowSpaceMembershipTracker {
     public static func snapshot(for windowIDs: [CGSWindowID]) throws -> WindowSpaceMembershipSnapshot {
-        WindowSpaceMembershipSnapshot(
-            memberships: try ManagedSpacesReader.spaces(forWindowIDs: windowIDs)
+        try WindowSpaceMembershipSnapshot(
+            memberships: ManagedSpacesReader.spaces(forWindowIDs: windowIDs)
         )
     }
 
