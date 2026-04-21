@@ -9,7 +9,7 @@
 import Testing
 
 struct WorkspaceGraphTests {
-    // MARK: - Window transformation
+    // MARK: - Window Transformation
 
     @Test func emptySpaceCreatesNoTiledRoot() async {
         let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.emptySpace)
@@ -18,18 +18,18 @@ struct WorkspaceGraphTests {
         #expect(root.displays[0].spaces[0].tiledRoot == nil)
     }
 
-    @Test func singleWindowSpaceCreatesStack() async throws {
+    @Test func singleWindowSpaceCreatesStack() async {
         let fixture = Fixture.Snapshot.oneTileableWindow
         let graph = WorkspaceGraph(snapshot: fixture)
         let root = await graph.snapshot()
 
         let tiledRoot = root.displays[0].spaces[0].tiledRoot
         #expect(
-            try tiledRoot
+            tiledRoot
                 == .stack(
                     direction: .horizontal,
                     children: [
-                        .leaf(windowId: #require(fixture.displays[0].spaces[0].windows.first?.id))
+                        .leaf(windowId: Fixture.WindowID.terminal)
                     ]
                 )
         )
@@ -45,9 +45,11 @@ struct WorkspaceGraphTests {
             tiledRoot
                 == .stack(
                     direction: .horizontal,
-                    children: fixture.displays[0].spaces[0].windows.map {
-                        .leaf(windowId: $0.id)
-                    }
+                    children: [
+                        .leaf(windowId: Fixture.WindowID.terminal),
+                        .leaf(windowId: Fixture.WindowID.browser),
+                        .leaf(windowId: Fixture.WindowID.notes),
+                    ]
                 )
         )
     }
