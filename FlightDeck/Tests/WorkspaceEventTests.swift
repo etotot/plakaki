@@ -5,9 +5,8 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
-import Testing
-
 @testable import FlightDeck
+import Testing
 
 struct WorkspaceEventTests {
     @Test func snapshotChanged() async {
@@ -19,7 +18,7 @@ struct WorkspaceEventTests {
         #expect(
             root.displays.map(\.id) == [
                 EventFixture.DisplayID.main,
-                EventFixture.DisplayID.external,
+                EventFixture.DisplayID.external
             ]
         )
     }
@@ -37,7 +36,7 @@ struct WorkspaceEventTests {
         #expect(
             root.displays.map(\.id) == [
                 EventFixture.DisplayID.main,
-                EventFixture.DisplayID.external,
+                EventFixture.DisplayID.external
             ]
         )
     }
@@ -52,6 +51,58 @@ struct WorkspaceEventTests {
             root.displays.map(\.id) == [
                 EventFixture.DisplayID.main
             ]
+        )
+    }
+
+    // MARK: - Space Events
+
+    @Test func activeSpaceChanged() async {
+        let graph = WorkspaceGraph(
+            snapshot: WorkspaceSnapshot(displays: [EventFixture.Display.main])
+        )
+
+        var root = await graph.snapshot()
+        #expect(
+            root.displays[0].focusedSpaceId == EventFixture.SpaceID.primary
+        )
+
+        await graph.handle(EventFixture.Observation.activeSpaceChanged)
+
+        root = await graph.snapshot()
+        #expect(
+            root.displays[0].focusedSpaceId == EventFixture.SpaceID.secondary
+        )
+    }
+
+    @Test func spaceAdded() async {
+        let graph = WorkspaceGraph(
+            snapshot: EventFixture.Snapshot.oneDisplayOneSpace
+        )
+
+        await graph.handle(EventFixture.Observation.spaceAdded)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays[0].spaces.count == 2
+        )
+        #expect(
+            root.displays[0].spaces[1].id == EventFixture.SpaceID.secondary
+        )
+    }
+
+    @Test func spaceRemoved() async {
+        let graph = WorkspaceGraph(
+            snapshot: EventFixture.Snapshot.oneDisplayTwoSpaces
+        )
+
+        await graph.handle(EventFixture.Observation.spaceRemoved)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays[0].spaces.count == 1
+        )
+        #expect(
+            root.displays[0].spaces[0].id == EventFixture.SpaceID.primary
         )
     }
 }
@@ -108,7 +159,7 @@ private enum EventFixture {
             activeSpaceId: SpaceID.primary,
             spaces: [
                 Space.primary,
-                Space.secondary,
+                Space.secondary
             ]
         )
 
@@ -131,7 +182,7 @@ private enum EventFixture {
         static let twoDisplays = WorkspaceSnapshot(
             displays: [
                 Display.main,
-                Display.external,
+                Display.external
             ]
         )
     }
