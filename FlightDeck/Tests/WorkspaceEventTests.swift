@@ -5,11 +5,52 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
+@testable import FlightDeck
 import Testing
 
-@testable import FlightDeck
-
 struct WorkspaceEventTests {
+    @Test func snapshotChanged() async {
+        let graph = WorkspaceGraph(snapshot: .init())
+
+        await graph.handle(EventFixture.Observation.snapshotChanged)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays.map(\.id) == [
+                EventFixture.DisplayID.main,
+                EventFixture.DisplayID.external
+            ]
+        )
+    }
+
+    @Test func displayConnected() async {
+        let graph = WorkspaceGraph(
+            snapshot: WorkspaceSnapshot(displays: [EventFixture.Display.main])
+        )
+
+        await graph.handle(EventFixture.Observation.displayConnected)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays.map(\.id) == [
+                EventFixture.DisplayID.main,
+                EventFixture.DisplayID.external
+            ]
+        )
+    }
+
+    @Test func displayDisconnected() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.twoDisplays)
+
+        await graph.handle(EventFixture.Observation.displayDisconnected)
+
+        let root = await graph.snapshot()
+        #expect(
+            root.displays.map(\.id) == [
+                EventFixture.DisplayID.main
+            ]
+        )
+    }
 }
 
 private enum EventFixture {
@@ -70,7 +111,7 @@ private enum EventFixture {
         static let twoDisplays = WorkspaceSnapshot(
             displays: [
                 Display.main,
-                Display.external,
+                Display.external
             ]
         )
     }

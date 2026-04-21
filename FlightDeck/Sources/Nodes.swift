@@ -20,6 +20,23 @@ public struct Root: Sendable {
         self.displays = displays
         self.focusedDisplayId = focusedDisplayId
     }
+
+    mutating func append(display: Display) {
+        if let index = displays.firstIndex(where: { $0.id == display.id }) {
+            displays[index] = display
+            return
+        }
+
+        displays.append(display)
+    }
+
+    mutating func remove(displayId: Display.ID) {
+        guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
+            return
+        }
+
+        displays.remove(at: index)
+    }
 }
 
 public struct Display: Identifiable, Sendable {

@@ -16,6 +16,34 @@ public actor WorkspaceGraph {
         root
     }
 
+    // MARK: - Event Handling
+
+    public func handle(_ event: WorkspaceEvent) {
+        switch event {
+        case .command:
+            return
+        case let .observation(observation):
+            handle(observation: observation)
+        }
+    }
+
+    private func handle(observation: WorkspaceObservation) {
+        switch observation {
+        case let .snapshotChanged(newSnapshot):
+            root = Self.transform(snapshot: newSnapshot)
+            return
+
+        case let .displayConnected(display):
+            root.append(display: Self.transform(display: display))
+
+        case let .displayDisconnected(displayId):
+            root.remove(displayId: displayId)
+
+        default:
+            return
+        }
+    }
+
     // MARK: - Graph Conversion
 
     // TODO: Consider moving to separate file
