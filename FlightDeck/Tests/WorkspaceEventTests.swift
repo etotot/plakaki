@@ -5,8 +5,9 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
-@testable import FlightDeck
 import Testing
+
+@testable import FlightDeck
 
 struct WorkspaceEventTests {
     @Test func snapshotChanged() async {
@@ -18,10 +19,12 @@ struct WorkspaceEventTests {
         #expect(
             root.displays.map(\.id) == [
                 EventFixture.DisplayID.main,
-                EventFixture.DisplayID.external
+                EventFixture.DisplayID.external,
             ]
         )
     }
+
+    // MARK: - Display Events
 
     @Test func displayConnected() async {
         let graph = WorkspaceGraph(
@@ -34,7 +37,7 @@ struct WorkspaceEventTests {
         #expect(
             root.displays.map(\.id) == [
                 EventFixture.DisplayID.main,
-                EventFixture.DisplayID.external
+                EventFixture.DisplayID.external,
             ]
         )
     }
@@ -100,6 +103,15 @@ private enum EventFixture {
             spaces: [Space.primary]
         )
 
+        static let mainWithTwoSpaces = ObservedDisplay(
+            id: DisplayID.main,
+            activeSpaceId: SpaceID.primary,
+            spaces: [
+                Space.primary,
+                Space.secondary,
+            ]
+        )
+
         static let external = ObservedDisplay(
             id: DisplayID.external,
             activeSpaceId: SpaceID.secondary,
@@ -108,10 +120,18 @@ private enum EventFixture {
     }
 
     enum Snapshot {
+        static let oneDisplayOneSpace = WorkspaceSnapshot(
+            displays: [Display.main]
+        )
+
+        static let oneDisplayTwoSpaces = WorkspaceSnapshot(
+            displays: [Display.mainWithTwoSpaces]
+        )
+
         static let twoDisplays = WorkspaceSnapshot(
             displays: [
                 Display.main,
-                Display.external
+                Display.external,
             ]
         )
     }
