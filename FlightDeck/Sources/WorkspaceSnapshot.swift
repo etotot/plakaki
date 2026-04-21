@@ -29,7 +29,9 @@ public struct WorkspaceSnapshot: CustomDebugStringConvertible, CustomStringConve
     }
 }
 
-public struct ObservedDisplay: CustomDebugStringConvertible, CustomStringConvertible, Identifiable, Sendable {
+public struct ObservedDisplay: CustomDebugStringConvertible, CustomStringConvertible, Identifiable,
+    Sendable
+{
     public var id: Display.ID
     public var activeSpaceId: Space.ID
     public var spaces: [ObservedSpace]
@@ -53,7 +55,9 @@ public struct ObservedDisplay: CustomDebugStringConvertible, CustomStringConvert
     }
 }
 
-public struct ObservedSpace: CustomDebugStringConvertible, CustomStringConvertible, Identifiable, Sendable {
+public struct ObservedSpace: CustomDebugStringConvertible, CustomStringConvertible, Identifiable,
+    Sendable
+{
     public var id: Space.ID
     public var windows: [ObservedWindow]
 
@@ -74,7 +78,9 @@ public struct ObservedSpace: CustomDebugStringConvertible, CustomStringConvertib
     }
 }
 
-public struct ObservedWindow: CustomDebugStringConvertible, CustomStringConvertible, Identifiable, Sendable {
+public struct ObservedWindow: CustomDebugStringConvertible, CustomStringConvertible, Identifiable,
+    Sendable
+{
     public var id: WindowId
     public var state: ObservedWindowState
 
@@ -130,7 +136,9 @@ private extension ObservedDisplay {
         if spaces.isEmpty {
             lines.append("\(indentation)  spaces: []")
         } else {
-            lines.append(contentsOf: spaces.flatMap { $0.debugLines(indentation: "\(indentation)  ") })
+            lines.append(
+                contentsOf: spaces.flatMap { $0.debugLines(indentation: "\(indentation)  ") }
+            )
         }
 
         return lines
@@ -144,7 +152,9 @@ private extension ObservedSpace {
         if windows.isEmpty {
             lines.append("\(indentation)  windows: []")
         } else {
-            lines.append(contentsOf: windows.map { $0.debugLines(indentation: "\(indentation)  ") }.flatMap { $0 })
+            lines.append(
+                contentsOf: windows.map { $0.debugLines(indentation: "\(indentation)  ") }.flatMap(\.self)
+            )
         }
 
         return lines
