@@ -55,19 +55,6 @@ let project = Project(
     name: appName,
     targets: [
         .target(
-            name: "GroundControl",
-            destinations: .macOS,
-            product: .framework,
-            bundleId: "\(bundleIdPrefix).GroundControl",
-            buildableFolders: [
-                .folder("GroundControl/Sources")
-            ],
-            scripts: [swiftLintScript],
-            dependencies: [
-                .external(name: "Dependencies")
-            ],
-        ),
-        .target(
             name: appName,
             destinations: .macOS,
             product: .app,
@@ -80,6 +67,7 @@ let project = Project(
             scripts: [swiftLintScript],
             dependencies: [
                 .target(name: "GroundControl"),
+                .target(name: "FlightDeck"),
                 .external(name: "Dependencies")
             ],
             settings: appSettings
@@ -95,6 +83,42 @@ let project = Project(
             ],
             dependencies: [.target(name: appName)],
             settings: testSettings
+        ),
+        .target(
+            name: "GroundControl",
+            destinations: .macOS,
+            product: .framework,
+            bundleId: "\(bundleIdPrefix).GroundControl",
+            buildableFolders: [
+                .folder("GroundControl/Sources")
+            ],
+            scripts: [swiftLintScript],
+            dependencies: [],
+        ),
+        .target(
+            name: "FlightDeck",
+            destinations: .macOS,
+            product: .framework,
+            bundleId: "\(bundleIdPrefix).FlightDeck",
+            buildableFolders: [
+                .folder("FlightDeck/Sources")
+            ],
+            scripts: [swiftLintScript],
+            dependencies: [
+                .target(name: "GroundControl"),
+            ],
+        ),
+        .target(
+            name: "FlightDeckTests",
+            destinations: .macOS,
+            product: .unitTests,
+            bundleId: "\(bundleIdPrefix).FlightDeckTests",
+            infoPlist: .default,
+            buildableFolders: [
+                .folder("FlightDeck/Tests")
+            ],
+            dependencies: [.target(name: "FlightDeck")],
+            settings: testSettings,
         )
     ]
 )
