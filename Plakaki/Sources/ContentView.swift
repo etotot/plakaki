@@ -4,6 +4,7 @@ import SwiftUI
 public struct ContentView: View {
     let appEnumerator: AppEnumerator
     @Dependency(\.axPermissionManager) var axPermissionManager
+    @Dependency(\.spaceManager) var spaceManager
 
     public var body: some View {
         VStack {
@@ -21,6 +22,14 @@ public struct ContentView: View {
 
             Button("Start app Monitoring") {
                 appEnumerator.enumerateApps()
+            }
+
+            Button("Print workspace snapshot") {
+                let snapshot = WorkspaceSnapshotBuilder(
+                    spaceManager: spaceManager
+                ).makeSnapshot()
+
+                print(snapshot)
             }
 
             DisplaysView()
