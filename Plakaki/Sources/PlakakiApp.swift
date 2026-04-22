@@ -8,5 +8,10 @@ struct PlakakiApp: App {
         WindowGroup {
             ContentView(appEnumerator: appEnumerator)
         }
+        MenuBarExtra {
+            Text("Hello world!")
+        } label: {
+            MenuBarLabelView()
+        }
     }
 }
