@@ -5,10 +5,55 @@
 //  Created by Andrey Marshak on 22/04/2026.
 //
 
+import CoreGraphics
 import Foundation
 
+public struct SpaceGeometry {
+    let spaceFrames: [Space.ID: CGRect]
+}
+
 public enum LayoutEngine {
-    static func computeLayout(for _: WorkspaceGraph) -> LayoutPlan {
-        fatalError("Not implemented")
+    static func computeLayout(for root: Root, spaceGeometry: [Space.ID: CGRect]) -> LayoutPlan {
+        var result = [WindowId: WindowLayout]()
+        for space in root.displays.compactMap(\.focusedSpace) {
+            guard let rect = spaceGeometry[space.id] else { continue }
+            result.merge(computeLayout(for: space, geometry: rect).windows, uniquingKeysWith: { _, new in new })
+        }
+
+        return .init(windows: result)
+    }
+
+    private static func computeLayout(for space: Space, geometry: CGRect) -> LayoutPlan {
+        guard let root = space.tiledRoot else {
+            return .empty
+        }
+
+        return computeLayout(for: root, geometry: geometry)
+    }
+
+    private static func computeLayout(for container: Container, geometry: CGRect) -> LayoutPlan {
+        switch container {
+        case let .leaf(windowId):
+            return .init(windows: [windowId: .init(frame: geometry, zIndex: 1)])
+
+        case let .stack(direction, children):
+            var result = [WindowId: WindowLayout]()
+
+            let stride = 8.0
+            let windowWidth = geometry.width - CGFloat(children.count - 1) * stride
+
+            for i in children.indices {
+                let rect = CGRect(x: CGFloat(i) * stride, y: 0, width: windowWidth, height: geometry.height)
+                switch children[i] {
+                case let .leaf(windowId):
+                    result[windowId] = .init(frame: rect, zIndex: 1)
+                default:
+                    let childLayout = computeLayout(for: children[i], geometry: rect)
+                    result.merge(childLayout.windows, uniquingKeysWith: { _, new in new })
+                }
+            }
+
+            return .init(windows: result)
+        }
     }
 }

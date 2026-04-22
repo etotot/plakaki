@@ -10,3 +10,9 @@ import Foundation
 public struct LayoutPlan: Sendable, Equatable {
     public var windows: [WindowId: WindowLayout]
 }
+
+extension LayoutPlan {
+    static var empty: Self {
+        Self(windows: [:])
+    }
+}

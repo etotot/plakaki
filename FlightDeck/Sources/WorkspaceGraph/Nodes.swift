@@ -141,6 +141,10 @@ public struct Display: Identifiable, Sendable {
         self.focusedSpaceId = focusedSpaceId
     }
 
+    var focusedSpace: Space? {
+        spaces.first { $0.id == focusedSpaceId }
+    }
+
     mutating func append(space: Space) {
         if let index = spaces.firstIndex(where: { $0.id == space.id }) {
             spaces[index] = space
