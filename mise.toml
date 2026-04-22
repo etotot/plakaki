@@ -2,6 +2,8 @@
 tuist = "4.182.0"
 swiftformat = "0.61.0"
 swiftlint = "0.63.2"
+xcbeautify = "3.2.1"
+"pipx:pymobiledevice3" = "9.10.1"
 
 [tasks.format]
 description = "Format Swift sources with SwiftFormat"
