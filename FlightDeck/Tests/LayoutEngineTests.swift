@@ -66,10 +66,10 @@ struct LayoutEngineTests {
             for: Fixture.RootFixture.threeTiledWindows,
             spaceGeometry: Fixture.Geometry.main
         )
-        // (1000 - 16) / 3 = 328; gaps at 336 and 664
+        // (1000 - 16) / 3 = 328; x[1] = 336, x[2] = 672
         #expect(plan.windows[Fixture.WindowID.terminal]?.frame == CGRect(x: 0, y: 0, width: 328, height: 800))
         #expect(plan.windows[Fixture.WindowID.browser]?.frame == CGRect(x: 336, y: 0, width: 328, height: 800))
-        #expect(plan.windows[Fixture.WindowID.notes]?.frame == CGRect(x: 664, y: 0, width: 328, height: 800))
+        #expect(plan.windows[Fixture.WindowID.notes]?.frame == CGRect(x: 672, y: 0, width: 328, height: 800))
     }
 
     @Test func nestedStackLayoutsRecursively() {
