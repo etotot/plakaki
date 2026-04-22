@@ -11,8 +11,7 @@ import GroundControl
 import SwiftUI
 
 struct MenuBarContent: View {
-    let appEnumerator: AppEnumerator
-
+    @Dependency(\.appEnumerator) var appEnumerator
     @Dependency(\.spaceManager) var spaceManager
     @Dependency(\.spaceMonitor) var spaceMonitor
 
@@ -39,19 +38,22 @@ struct MenuBarContent: View {
                     return display.spaces.first { $0.managedSpaceID == activeSpace }
                 }
 
+                let currentWindowMap = await appEnumerator.windowMap()
                 await MainActor.run {
                     windowMap = activeSpaces.reduce(
                         into: [(ManagedSpace, [ObservedWindow])]()
                     ) { result, space in
-                        result.append((space, spaceManager.readWindows(space).map(makeWindow)))
+                        let windows = spaceManager.readWindows(space)
+                            .map { makeWindow(from: $0, windowMap: currentWindowMap) }
+                        result.append((space, windows))
                     }
                 }
             }
         }
     }
 
-    private func makeWindow(from windowId: CGSWindowID) -> ObservedWindow {
-        guard let element = appEnumerator.windowMap[windowId] else {
+    private func makeWindow(from windowId: CGSWindowID, windowMap: [CGWindowID: AXUIElement]) -> ObservedWindow {
+        guard let element = windowMap[windowId] else {
             return ObservedWindow(id: windowId, isTileable: false)
         }
 
@@ -65,5 +67,5 @@ struct MenuBarContent: View {
 }
 
 #Preview {
-    MenuBarContent(appEnumerator: .init())
+    MenuBarContent()
 }

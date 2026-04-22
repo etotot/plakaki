@@ -5,21 +5,24 @@
 //  Created by Andrey Marshak on 20/04/2026.
 //
 
-import AppKit
+@preconcurrency import AppKit
+import Dependencies
 import Foundation
 import OSLog
 
 private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "windowMonitoring")
 
-final class AppEnumerator {
-    private var appMonitors: [pid_t: AppMonitor] = .init()
+struct AppEnumerator {
+    var enumerateApps: @Sendable () async -> Void
+    var windowMap: @Sendable () async -> [CGWindowID: AXUIElement]
+}
 
+private actor AppEnumeratorActor {
+    private var appMonitors: [pid_t: AppMonitor] = .init()
     private(set) var windowMap: [CGWindowID: AXUIElement] = .init()
 
     func enumerateApps() {
-        let workspace = NSWorkspace.shared
-
-        let applications = workspace.runningApplications.filter {
+        let applications = NSWorkspace.shared.runningApplications.filter {
             $0.activationPolicy == .regular
         }
 
@@ -37,5 +40,27 @@ final class AppEnumerator {
                 monitor?.subscribeToWindow(window)
             }
         }
+    }
+}
+
+private enum AppEnumeratorKey: DependencyKey {
+    static let liveValue: AppEnumerator = {
+        let actor = AppEnumeratorActor()
+        return AppEnumerator(
+            enumerateApps: { await actor.enumerateApps() },
+            windowMap: { await actor.windowMap }
+        )
+    }()
+
+    static let testValue = AppEnumerator(
+        enumerateApps: {},
+        windowMap: { [:] }
+    )
+}
+
+extension DependencyValues {
+    var appEnumerator: AppEnumerator {
+        get { self[AppEnumeratorKey.self] }
+        set { self[AppEnumeratorKey.self] = newValue }
     }
 }

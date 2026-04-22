@@ -5,6 +5,7 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
+import AppKit
 import FlightDeck
 import GroundControl
 
@@ -12,14 +13,16 @@ struct WorkspaceSnapshotBuilder {
     var spaceManager: SpaceManager
     var appEnumerator: AppEnumerator
 
-    func makeSnapshot() -> WorkspaceSnapshot {
-        WorkspaceSnapshot(
-            displays: spaceManager.readDisplays().compactMap(makeDisplay)
+    func makeSnapshot() async -> WorkspaceSnapshot {
+        let windowMap = await appEnumerator.windowMap()
+        return WorkspaceSnapshot(
+            displays: spaceManager.readDisplays().compactMap { makeDisplay(from: $0, windowMap: windowMap) }
         )
     }
 
     private func makeDisplay(
-        from display: ManagedDisplaySpaces
+        from display: ManagedDisplaySpaces,
+        windowMap: [CGWindowID: AXUIElement]
     ) -> ObservedDisplay? {
         guard let activeSpaceId = display.currentSpaceID ?? display.spaces.first?.managedSpaceID else {
             return nil
@@ -28,19 +31,19 @@ struct WorkspaceSnapshotBuilder {
         return ObservedDisplay(
             id: display.displayIdentifier,
             activeSpaceId: activeSpaceId,
-            spaces: display.spaces.map(makeSpace)
+            spaces: display.spaces.map { makeSpace(from: $0, windowMap: windowMap) }
         )
     }
 
-    private func makeSpace(from space: ManagedSpace) -> ObservedSpace {
+    private func makeSpace(from space: ManagedSpace, windowMap: [CGWindowID: AXUIElement]) -> ObservedSpace {
         ObservedSpace(
             id: space.managedSpaceID,
-            windows: spaceManager.readWindows(space).map(makeWindow)
+            windows: spaceManager.readWindows(space).map { makeWindow(from: $0, windowMap: windowMap) }
         )
     }
 
-    private func makeWindow(from windowId: CGSWindowID) -> ObservedWindow {
-        guard let element = appEnumerator.windowMap[windowId] else {
+    private func makeWindow(from windowId: CGSWindowID, windowMap: [CGWindowID: AXUIElement]) -> ObservedWindow {
+        guard let element = windowMap[windowId] else {
             return ObservedWindow(id: windowId, isTileable: false)
         }
 

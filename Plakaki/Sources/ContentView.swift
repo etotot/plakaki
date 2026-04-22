@@ -6,8 +6,7 @@ import SwiftUI
 private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "contentView")
 
 public struct ContentView: View {
-    let appEnumerator: AppEnumerator
-
+    @Dependency(\.appEnumerator) var appEnumerator
     @Dependency(\.axPermissionManager) var axPermissionManager
     @Dependency(\.spaceManager) var spaceManager
 
@@ -26,19 +25,20 @@ public struct ContentView: View {
             )
 
             Button("Start app Monitoring") {
-                appEnumerator.enumerateApps()
+                Task { await appEnumerator.enumerateApps() }
             }
 
             Button("Print workspace snapshot") {
-                let snapshot = WorkspaceSnapshotBuilder(
-                    spaceManager: spaceManager, appEnumerator: appEnumerator
-                ).makeSnapshot()
-
-                logger.debug("Workspace snapshot: \(String(describing: snapshot))")
+                Task {
+                    let snapshot = await WorkspaceSnapshotBuilder(
+                        spaceManager: spaceManager, appEnumerator: appEnumerator
+                    ).makeSnapshot()
+                    logger.debug("Workspace snapshot: \(String(describing: snapshot))")
+                }
             }
             Button("Apply layout") {
                 Task {
-                    let snapshot = WorkspaceSnapshotBuilder(
+                    let snapshot = await WorkspaceSnapshotBuilder(
                         spaceManager: spaceManager, appEnumerator: appEnumerator
                     ).makeSnapshot()
 
@@ -48,8 +48,9 @@ public struct ContentView: View {
                     logger.debug("Geometry: \(String(describing: geometry))")
                     let plan = LayoutEngine.computeLayout(for: root, spaceGeometry: geometry)
                     logger.debug("Layout plan: \(plan.windows.count) windows")
+                    let windowMap = await appEnumerator.windowMap()
                     for (windowId, layout) in plan.windows {
-                        guard let element = appEnumerator.windowMap[windowId] else {
+                        guard let element = windowMap[windowId] else {
                             logger.info("[\(windowId)] no AX element — skipping")
                             continue
                         }
@@ -70,6 +71,6 @@ public struct ContentView: View {
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView(appEnumerator: .init())
+        ContentView()
     }
 }
