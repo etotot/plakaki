@@ -9,3 +9,5 @@
 --hexgrouping 4,8
 --binarygrouping 4,8
 --octalgrouping 4,8
+--wrapconditions after-first
+--no-wrap-operators =
