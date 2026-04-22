@@ -7,7 +7,8 @@
 
 import GroundControl
 
-public typealias WindowId = String
+// TODO: WindowId and CGSWindowID should be the same type shared between FlightDeck and GroundControl.
+public typealias WindowId = UInt32
 
 public struct Root: Sendable {
     public var displays: [Display]

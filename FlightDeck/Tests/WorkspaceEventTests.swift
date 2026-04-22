@@ -234,8 +234,8 @@ private enum EventFixture {
     }
 
     enum WindowID {
-        static let terminal = "terminal"
-        static let browser = "browser"
+        static let terminal: WindowId = 1001
+        static let browser: WindowId = 1002
     }
 
     enum Window {

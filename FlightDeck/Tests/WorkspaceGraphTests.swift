@@ -131,11 +131,11 @@ private enum Fixture {
     }
 
     enum WindowID {
-        static let terminal = "terminal"
-        static let browser = "browser"
-        static let notes = "notes"
-        static let minimized = "minimized"
-        static let dialog = "dialog"
+        static let terminal: WindowId = 1001
+        static let browser: WindowId = 1002
+        static let notes: WindowId = 1003
+        static let minimized: WindowId = 1004
+        static let dialog: WindowId = 1005
     }
 
     enum Window {

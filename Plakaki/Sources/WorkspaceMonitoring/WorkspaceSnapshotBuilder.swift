@@ -39,6 +39,6 @@ struct WorkspaceSnapshotBuilder {
     }
 
     private func makeWindow(from windowId: CGSWindowID) -> ObservedWindow {
-        ObservedWindow(id: String(windowId))
+        ObservedWindow(id: windowId)
     }
 }
