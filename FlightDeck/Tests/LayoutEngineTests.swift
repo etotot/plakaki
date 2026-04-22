@@ -10,17 +10,98 @@ import CoreGraphics
 import Testing
 
 struct LayoutEngineTests {
-    @Test func emptyRoot() {
+    // MARK: - Empty / skip cases
+
+    @Test func emptyRootProducesEmptyPlan() {
         let plan = LayoutEngine.computeLayout(for: Fixture.RootFixture.empty, spaceGeometry: Fixture.Geometry.empty)
         #expect(plan.windows.isEmpty)
     }
 
-    @Test func displayWithNoGeometryIgnored() {
+    @Test func emptyFocusedSpaceProducesEmptyPlan() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.emptyDisplay,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        #expect(plan.windows.isEmpty)
+    }
+
+    @Test func missingGeometrySkipsDisplay() {
         let plan = LayoutEngine.computeLayout(
             for: Fixture.RootFixture.missingGeometry,
             spaceGeometry: Fixture.Geometry.empty
         )
         #expect(plan.windows.isEmpty)
+    }
+
+    @Test func nonFocusedSpaceIsIgnored() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.nonFocusedSpaceHasWindows,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        #expect(plan.windows.isEmpty)
+    }
+
+    // MARK: - Tiled layout
+
+    @Test func singleWindowFillsDisplayFrame() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.oneTiledWindow,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        #expect(plan.windows[Fixture.WindowID.terminal]?.frame == Fixture.Frame.display)
+    }
+
+    @Test func twoWindowsSplitWidthEvenly() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.twoTiledWindows,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        // (1000 - 8) / 2 = 496; x[1] = 496 + 8 = 504
+        #expect(plan.windows[Fixture.WindowID.terminal]?.frame == CGRect(x: 0, y: 0, width: 496, height: 800))
+        #expect(plan.windows[Fixture.WindowID.browser]?.frame == CGRect(x: 504, y: 0, width: 496, height: 800))
+    }
+
+    @Test func threeWindowsSplitWidthEvenly() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.threeTiledWindows,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        // (1000 - 16) / 3 = 328; gaps at 336 and 664
+        #expect(plan.windows[Fixture.WindowID.terminal]?.frame == CGRect(x: 0, y: 0, width: 328, height: 800))
+        #expect(plan.windows[Fixture.WindowID.browser]?.frame == CGRect(x: 336, y: 0, width: 328, height: 800))
+        #expect(plan.windows[Fixture.WindowID.notes]?.frame == CGRect(x: 664, y: 0, width: 328, height: 800))
+    }
+
+    @Test func nestedStackLayoutsRecursively() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.nestedStack,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        // Outer split: left=496, right offset=504 width=496
+        // Right child splits: (496 - 8) / 2 = 244; x[0]=504, x[1]=504+244+8=756
+        #expect(plan.windows[Fixture.WindowID.terminal]?.frame == CGRect(x: 0, y: 0, width: 496, height: 800))
+        #expect(plan.windows[Fixture.WindowID.browser]?.frame == CGRect(x: 504, y: 0, width: 244, height: 800))
+        #expect(plan.windows[Fixture.WindowID.notes]?.frame == CGRect(x: 756, y: 0, width: 244, height: 800))
+    }
+
+    // MARK: - zIndex
+
+    @Test func unfocusedTiledWindowsGetZIndexZero() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.oneTiledWindow,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        #expect(plan.windows[Fixture.WindowID.terminal]?.zIndex == 0)
+    }
+
+    @Test func focusedTiledWindowGetHigherZIndex() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.focusedMiddleWindow,
+            spaceGeometry: Fixture.Geometry.main
+        )
+        #expect(plan.windows[Fixture.WindowID.terminal]?.zIndex == 0)
+        #expect(plan.windows[Fixture.WindowID.browser]?.zIndex == 1)
+        #expect(plan.windows[Fixture.WindowID.notes]?.zIndex == 0)
     }
 }
 
