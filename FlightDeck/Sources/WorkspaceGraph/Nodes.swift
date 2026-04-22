@@ -212,7 +212,7 @@ public struct Space: Identifiable, Sendable {
 
 extension Space {
     var windowIds: [WindowId] {
-        tiledRoot?.windowIds() ?? [] + floatingWindowIds
+        (tiledRoot?.windowIds() ?? []) + floatingWindowIds
     }
 }
 
