@@ -28,30 +28,50 @@ public enum LayoutEngine {
             return .empty
         }
 
-        return computeLayout(for: root, geometry: geometry)
+        return computeLayout(for: root, geometry: geometry, focusedWindowId: space.focusedWindow)
     }
 
-    private static func computeLayout(for container: Container, geometry: CGRect) -> LayoutPlan {
+    private static func computeLayout(for container: Container, geometry: CGRect,
+                                      focusedWindowId: WindowId?) -> LayoutPlan
+    {
+        let gap = 8.0
+
         switch container {
         case let .leaf(windowId):
-            return .init(windows: [windowId: .init(frame: geometry, zIndex: 1)])
+            return .init(windows: [windowId: .init(frame: geometry, zIndex: windowId == focusedWindowId ? 1 : 0)])
 
         case let .stack(direction, children):
             var result = [WindowId: WindowLayout]()
 
-            let stride = 8.0
-            let windowWidth = geometry.width - CGFloat(children.count - 1) * stride
+            let windowWidth = (geometry.width - CGFloat(children.count - 1) * gap) / CGFloat(children.count)
+            for childIndex in children.indices {
+                let rect = CGRect(
+                    x: geometry.origin.x + CGFloat(childIndex) * (gap + windowWidth),
+                    y: geometry.origin.y,
+                    width: windowWidth,
+                    height: geometry.height
+                )
 
-            for i in children.indices {
-                let rect = CGRect(x: CGFloat(i) * stride, y: 0, width: windowWidth, height: geometry.height)
-                switch children[i] {
-                case let .leaf(windowId):
-                    result[windowId] = .init(frame: rect, zIndex: 1)
-                default:
-                    let childLayout = computeLayout(for: children[i], geometry: rect)
-                    result.merge(childLayout.windows, uniquingKeysWith: { _, new in new })
-                }
+                let childLayout = computeLayout(
+                    for: children[childIndex],
+                    geometry: rect,
+                    focusedWindowId: focusedWindowId
+                )
+                result.merge(childLayout.windows, uniquingKeysWith: { _, new in new })
             }
+
+            // let windowWidth = geometry.width - CGFloat(children.count - 1) * stride
+            //
+            // for i in children.indices {
+            //     let rect = CGRect(x: CGFloat(i) * stride, y: 0, width: windowWidth, height: geometry.height)
+            //     switch children[i] {
+            //     case let .leaf(windowId):
+            //         result[windowId] = .init(frame: rect, zIndex: 1)
+            //     default:
+            //         let childLayout = computeLayout(for: children[i], geometry: rect)
+            //         result.merge(childLayout.windows, uniquingKeysWith: { _, new in new })
+            //     }
+            // }
 
             return .init(windows: result)
         }
