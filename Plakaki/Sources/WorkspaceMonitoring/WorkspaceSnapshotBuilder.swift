@@ -10,6 +10,7 @@ import GroundControl
 
 struct WorkspaceSnapshotBuilder {
     var spaceManager: SpaceManager
+    var appEnumerator: AppEnumerator
 
     func makeSnapshot() -> WorkspaceSnapshot {
         WorkspaceSnapshot(
@@ -39,6 +40,15 @@ struct WorkspaceSnapshotBuilder {
     }
 
     private func makeWindow(from windowId: CGSWindowID) -> ObservedWindow {
-        ObservedWindow(id: windowId)
+        guard let element = appEnumerator.windowMap[windowId] else {
+            return ObservedWindow(id: windowId, isTileable: false)
+        }
+
+        return ObservedWindow(
+            id: windowId,
+            bundleId: element.bundleId(),
+            title: element.title(),
+            isMinimized: element.isMinimized() ?? false
+        )
     }
 }

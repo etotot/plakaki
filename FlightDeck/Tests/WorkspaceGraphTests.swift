@@ -141,33 +141,34 @@ private enum Fixture {
     enum Window {
         static let terminal = ObservedWindow(
             id: WindowID.terminal,
-            state: ObservedWindowState(title: "Terminal")
+            bundleId: "com.example.terminal",
+            title: "Terminal"
         )
 
         static let browser = ObservedWindow(
             id: WindowID.browser,
-            state: ObservedWindowState(title: "Browser")
+            bundleId: "com.example.browser",
+            title: "Browser"
         )
 
         static let notes = ObservedWindow(
             id: WindowID.notes,
-            state: ObservedWindowState(title: "Notes")
+            bundleId: "com.example.notes",
+            title: "Notes"
         )
 
         static let minimized = ObservedWindow(
             id: WindowID.minimized,
-            state: ObservedWindowState(
-                title: "Minimized",
-                isMinimized: true
-            )
+            bundleId: "com.example.minimized",
+            title: "Minimized",
+            isMinimized: true
         )
 
         static let dialog = ObservedWindow(
             id: WindowID.dialog,
-            state: ObservedWindowState(
-                title: "Dialog",
-                isTileable: false
-            )
+            bundleId: "com.example.dialog",
+            title: "Dialog",
+            isTileable: false
         )
     }
 

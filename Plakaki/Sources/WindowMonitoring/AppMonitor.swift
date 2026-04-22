@@ -24,9 +24,8 @@ final class AppMonitor {
         var observer: AXObserver?
         let result = AXObserverCreate(
             app.processIdentifier,
-            { _, element, notification, _ in
+            { _, _, notification, _ in
                 let name = notification as String
-                print("AX notification:", name, "element:", element)
             },
             &observer
         )

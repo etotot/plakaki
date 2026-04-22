@@ -82,35 +82,21 @@ public struct ObservedWindow: CustomDebugStringConvertible, CustomStringConverti
     Sendable
 {
     public var id: WindowId
-    public var state: ObservedWindowState
 
-    public init(
-        id: WindowId,
-        state: ObservedWindowState = ObservedWindowState()
-    ) {
-        self.id = id
-        self.state = state
-    }
-
-    public var description: String {
-        debugDescription
-    }
-
-    public var debugDescription: String {
-        debugLines(indentation: "").joined(separator: "\n")
-    }
-}
-
-public struct ObservedWindowState: CustomDebugStringConvertible, CustomStringConvertible, Sendable {
+    public var bundleId: String?
     public var title: String?
     public var isMinimized: Bool
     public var isTileable: Bool
 
     public init(
+        id: WindowId,
+        bundleId: String? = nil,
         title: String? = nil,
         isMinimized: Bool = false,
         isTileable: Bool = true
     ) {
+        self.id = id
+        self.bundleId = bundleId
         self.title = title
         self.isMinimized = isMinimized
         self.isTileable = isTileable
@@ -121,9 +107,7 @@ public struct ObservedWindowState: CustomDebugStringConvertible, CustomStringCon
     }
 
     public var debugDescription: String {
-        let titleDescription = title.map { "\"\($0)\"" } ?? "nil"
-
-        return "title: \(titleDescription), minimized: \(isMinimized), tileable: \(isTileable)"
+        debugLines(indentation: "").joined(separator: "\n")
     }
 }
 
@@ -163,8 +147,11 @@ private extension ObservedSpace {
 
 private extension ObservedWindow {
     func debugLines(indentation: String) -> [String] {
-        [
-            "\(indentation)Window(id: \(id), \(state.debugDescription))"
+        let titleDescription = title.map { "\"\($0)\"" } ?? "nil"
+        let bundleIdDescription = bundleId ?? "nil"
+
+        return [
+            "\(indentation)Window(id: \(id), bundleId: \(bundleIdDescription), title: \(titleDescription), minimized: \(isMinimized), tileable: \(isTileable))"
         ]
     }
 }

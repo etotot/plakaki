@@ -241,17 +241,20 @@ private enum EventFixture {
     enum Window {
         static let terminal = ObservedWindow(
             id: WindowID.terminal,
-            state: ObservedWindowState(title: "Terminal")
+            bundleId: "com.example.terminal",
+            title: "Terminal"
         )
 
         static let updatedTerminal = ObservedWindow(
             id: WindowID.terminal,
-            state: ObservedWindowState(title: "Terminal Updated")
+            bundleId: "com.example.terminal",
+            title: "Terminal Updated"
         )
 
         static let browser = ObservedWindow(
             id: WindowID.browser,
-            state: ObservedWindowState(title: "Browser")
+            bundleId: "com.example.browser",
+            title: "Browser"
         )
     }
 

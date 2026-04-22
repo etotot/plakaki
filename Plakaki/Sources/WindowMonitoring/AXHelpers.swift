@@ -114,6 +114,12 @@ extension AXUIElement {
         optionalValue(for: kAXTitleAttribute as CFString)
     }
 
+    func bundleId() -> String? {
+        var pid: pid_t = 0
+        guard AXUIElementGetPid(self, &pid) == .success else { return nil }
+        return NSRunningApplication(processIdentifier: pid)?.bundleIdentifier
+    }
+
     func role() -> String? {
         optionalValue(for: kAXRoleAttribute as CFString)
     }

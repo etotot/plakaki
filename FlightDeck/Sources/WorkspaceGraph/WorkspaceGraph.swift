@@ -12,7 +12,7 @@ public actor WorkspaceGraph {
         root = Self.transform(snapshot: snapshot)
     }
 
-    func snapshot() -> Root {
+    public func snapshot() -> Root {
         root
     }
 
@@ -88,14 +88,14 @@ public actor WorkspaceGraph {
             root.remove(spaceId: spaceId, displayId: displayId)
 
         case let .windowDiscovered(window, spaceId):
-            guard window.state.isTileable, !window.state.isMinimized else {
+            guard window.isTileable, !window.isMinimized else {
                 return
             }
 
             root.appendTiledWindow(window.id, spaceId: spaceId)
 
         case let .windowUpdated(window, spaceId):
-            if window.state.isTileable, !window.state.isMinimized {
+            if window.isTileable, !window.isMinimized {
                 root.appendTiledWindow(window.id, spaceId: spaceId)
             } else {
                 root.removeWindow(window.id)
@@ -143,7 +143,7 @@ public actor WorkspaceGraph {
 
     private static func transform(windows: [ObservedWindow]) -> Container? {
         let tiledWindows = windows.filter {
-            $0.state.isTileable && !$0.state.isMinimized
+            $0.isTileable && !$0.isMinimized
         }
 
         guard !tiledWindows.isEmpty else {

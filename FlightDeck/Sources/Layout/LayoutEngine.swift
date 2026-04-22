@@ -13,7 +13,7 @@ public struct SpaceGeometry {
 }
 
 public enum LayoutEngine {
-    static func computeLayout(for root: Root, spaceGeometry: [Space.ID: CGRect]) -> LayoutPlan {
+    public static func computeLayout(for root: Root, spaceGeometry: [Space.ID: CGRect]) -> LayoutPlan {
         var result = [WindowId: WindowLayout]()
         for space in root.displays.compactMap(\.focusedSpace) {
             guard let rect = spaceGeometry[space.id] else { continue }
