@@ -76,6 +76,19 @@ extension AXUIElement {
         )
     }
 
+    func setPosition(_ point: CGPoint) throws {
+        try setValue(point, axType: .cgPoint, for: kAXPositionAttribute as CFString)
+    }
+
+    func setSize(_ size: CGSize) throws {
+        try setValue(size, axType: .cgSize, for: kAXSizeAttribute as CFString)
+    }
+
+    func setFrame(_ rect: CGRect) throws {
+        try setPosition(rect.origin)
+        try setSize(rect.size)
+    }
+
     func windowID() throws -> CGSWindowID {
         var windowID: CGSWindowID = 0
         let result = _AXUIElementGetWindow(self, &windowID)
@@ -126,6 +139,17 @@ extension AXUIElement {
         }
 
         return unpackedValue
+    }
+
+    private func setValue(_ value: some Any, axType: AXValueType, for attribute: CFString) throws {
+        var mutableValue = value
+        guard let axValue = AXValueCreate(axType, &mutableValue) else {
+            throw AXHelperError.invalidAXValue(attribute)
+        }
+        let result = AXUIElementSetAttributeValue(self, attribute, axValue)
+        guard result == .success else {
+            throw AXHelperError.failure(result, attribute)
+        }
     }
 }
 
