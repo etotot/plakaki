@@ -115,10 +115,13 @@ struct WorkspaceEventTests {
 
         let root = await graph.snapshot()
         #expect(
-            root.displays[0].spaces[0].tiledRoot ==
-                .stack(direction: .horizontal, children: [
-                    .leaf(windowId: EventFixture.WindowID.terminal)
-                ])
+            root.displays[0].spaces[0].tiledRoot
+                == .stack(
+                    direction: .horizontal,
+                    children: [
+                        .leaf(windowId: EventFixture.WindowID.terminal)
+                    ]
+                )
         )
     }
 
@@ -129,10 +132,13 @@ struct WorkspaceEventTests {
 
         let root = await graph.snapshot()
         #expect(
-            root.displays[0].spaces[0].tiledRoot ==
-                .stack(direction: .horizontal, children: [
-                    .leaf(windowId: EventFixture.WindowID.terminal)
-                ])
+            root.displays[0].spaces[0].tiledRoot
+                == .stack(
+                    direction: .horizontal,
+                    children: [
+                        .leaf(windowId: EventFixture.WindowID.terminal)
+                    ]
+                )
         )
     }
 
@@ -154,8 +160,8 @@ struct WorkspaceEventTests {
 
         let root = await graph.snapshot()
         #expect(
-            root.displays[0].spaces[1].tiledRoot ==
-                .stack(
+            root.displays[0].spaces[1].tiledRoot
+                == .stack(
                     direction: .horizontal,
                     children: [
                         .leaf(windowId: EventFixture.WindowID.browser),
@@ -163,6 +169,56 @@ struct WorkspaceEventTests {
                     ]
                 )
         )
+    }
+
+    // MARK: - Commands
+
+    @Test func focusWindow() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.windowFocusTarget)
+
+        var root = await graph.snapshot()
+        #expect(root.displays[0].spaces[0].focusedWindow == nil)
+
+        await graph.handle(EventFixture.Command.focusWindow)
+
+        root = await graph.snapshot()
+        #expect(root.displays[0].spaces[0].focusedWindow == EventFixture.WindowID.terminal)
+    }
+
+    @Test func focusSpace() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.spaceFocusTarget)
+
+        var root = await graph.snapshot()
+        #expect(root.displays[0].focusedSpaceId == EventFixture.SpaceID.primary)
+
+        await graph.handle(EventFixture.Command.focusSpace)
+
+        root = await graph.snapshot()
+        #expect(root.displays[0].focusedSpaceId == EventFixture.SpaceID.secondary)
+    }
+
+    @Test func focusDisplay() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.displayFocusTarget)
+
+        var root = await graph.snapshot()
+        #expect(root.focusedDisplayId == EventFixture.DisplayID.main)
+
+        await graph.handle(EventFixture.Command.focusDisplay)
+
+        root = await graph.snapshot()
+        #expect(root.focusedDisplayId == EventFixture.DisplayID.external)
+    }
+
+    @Test func toggleFloating() async {
+        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.floatingToggleTarget)
+
+        var root = await graph.snapshot()
+        #expect(root.displays[0].spaces[0].floatingWindowIds.isEmpty)
+
+        await graph.handle(EventFixture.Command.toggleFloating)
+
+        root = await graph.snapshot()
+        #expect(root.displays[0].spaces[0].floatingWindowIds == [EventFixture.WindowID.terminal])
     }
 }
 
@@ -279,6 +335,13 @@ private enum EventFixture {
                 Display.external
             ]
         )
+    }
+
+    enum CommandSnapshot {
+        static let windowFocusTarget = Snapshot.oneDisplayTwoWindowSpace
+        static let spaceFocusTarget = Snapshot.oneDisplayTwoSpaces
+        static let displayFocusTarget = Snapshot.twoDisplays
+        static let floatingToggleTarget = Snapshot.oneDisplayOneSpace
     }
 
     enum Observation {
