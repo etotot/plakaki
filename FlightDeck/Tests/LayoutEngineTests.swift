@@ -9,7 +9,20 @@ import CoreGraphics
 @testable import FlightDeck
 import Testing
 
-struct LayoutEngineTests {}
+struct LayoutEngineTests {
+    @Test func emptyRoot() {
+        let plan = LayoutEngine.computeLayout(for: Fixture.RootFixture.empty, spaceGeometry: Fixture.Geometry.empty)
+        #expect(plan.windows.isEmpty)
+    }
+
+    @Test func displayWithNoGeometryIgnored() {
+        let plan = LayoutEngine.computeLayout(
+            for: Fixture.RootFixture.missingGeometry,
+            spaceGeometry: Fixture.Geometry.empty
+        )
+        #expect(plan.windows.isEmpty)
+    }
+}
 
 private enum Fixture {
     enum DisplayID {
