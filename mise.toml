@@ -11,6 +11,18 @@ run = "swiftformat ."
 description = "Check Swift formatting without writing changes"
 run = "swiftformat . --lint"
 
+[tasks."format:check:staged"]
+description = "Check staged Swift sources with SwiftFormat without writing changes"
+run = '''
+files=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.swift$' || true)
+
+if [ -z "$files" ]; then
+  exit 0
+fi
+
+swiftformat --lint $files
+'''
+
 [tasks.lint]
 description = "Lint Swift sources with SwiftLint"
 run = "swiftlint lint --strict --no-cache"
@@ -22,3 +34,7 @@ run = "swiftlint --fix --no-cache"
 [tasks.generate]
 description = "Generate the Xcode project with Tuist"
 run = "tuist generate --no-open"
+
+[tasks."hooks:install"]
+description = "Install Git hooks for this checkout"
+run = "git config core.hooksPath .githooks"

@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+if ! mise run format:check:staged; then
+    echo
+    echo "SwiftFormat check failed. Run 'mise run format', review the diff, then commit again."
+    exit 1
+fi
