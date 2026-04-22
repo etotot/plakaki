@@ -20,10 +20,49 @@ public actor WorkspaceGraph {
 
     public func handle(_ event: WorkspaceEvent) {
         switch event {
-        case .command:
-            return
+        case let .command(command):
+            handle(command: command)
         case let .observation(observation):
             handle(observation: observation)
+        }
+    }
+
+    private func handle(command: WorkspaceCommand) {
+        switch command {
+        case let .focusWindow(windowId):
+            root.focusWindow(windowId)
+        case let .focusSpace(spaceId, displayId):
+            root.setFocusedSpaceId(spaceId, displayId: displayId)
+        case let .focusDisplay(displayId):
+            guard root.displays.contains(where: { $0.id == displayId }) else {
+                return
+            }
+
+            root.focusedDisplayId = displayId
+        case let .toggleFloating(windowId):
+            toggleFloating(windowId)
+        }
+    }
+
+    private func toggleFloating(_ windowId: WindowId) {
+        // TODO: This naive full graph scan is fine for now, but we should
+        // likely maintain a windowId -> location index once move/remove gets hot.
+        for displayIndex in root.displays.indices {
+            for spaceIndex in root.displays[displayIndex].spaces.indices {
+                if root.displays[displayIndex].spaces[spaceIndex].floatingWindowIds.contains(windowId) {
+                    root.displays[displayIndex].spaces[spaceIndex].floatingWindowIds.removeAll { $0 == windowId }
+                    root.displays[displayIndex].spaces[spaceIndex].appendTiledWindow(windowId)
+                    return
+                }
+
+                guard root.displays[displayIndex].spaces[spaceIndex].windowIds.contains(windowId) else {
+                    continue
+                }
+
+                root.displays[displayIndex].spaces[spaceIndex].removeWindow(windowId)
+                root.displays[displayIndex].spaces[spaceIndex].floatingWindowIds.append(windowId)
+                return
+            }
         }
     }
 
@@ -81,7 +120,7 @@ public actor WorkspaceGraph {
     private static func transform(snapshot: WorkspaceSnapshot) -> Root {
         Root(
             displays: snapshot.displays.map { transform(display: $0) },
-            focusedDisplayId: nil
+            focusedDisplayId: snapshot.displays.first?.id
         )
     }
 
