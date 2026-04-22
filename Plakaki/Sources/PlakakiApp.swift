@@ -9,9 +9,9 @@ struct PlakakiApp: App {
             ContentView(appEnumerator: appEnumerator)
         }
         MenuBarExtra {
-            Text("Hello world!")
+            MenuBarContent(appEnumerator: appEnumerator)
         } label: {
-            MenuBarLabelView()
+            MenuBarLabel()
         }
     }
 }

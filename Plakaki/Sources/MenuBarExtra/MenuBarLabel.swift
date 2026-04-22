@@ -1,5 +1,5 @@
 //
-//  MenuBarLabelView.swift
+//  MenuBarLabel.swift
 //  Plakaki
 //
 //  Created by Andrey Marshak on 22/04/2026.
@@ -9,7 +9,7 @@ import Dependencies
 import GroundControl
 import SwiftUI
 
-struct MenuBarLabelView: View {
+struct MenuBarLabel: View {
     @Dependency(\.spaceManager) var spaceManager
     @Dependency(\.spaceMonitor) var spaceMonitor
 

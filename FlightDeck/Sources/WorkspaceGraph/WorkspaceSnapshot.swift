@@ -78,7 +78,7 @@ public struct ObservedSpace: CustomDebugStringConvertible, CustomStringConvertib
     }
 }
 
-public struct ObservedWindow: CustomDebugStringConvertible, CustomStringConvertible, Identifiable,
+public struct ObservedWindow: CustomDebugStringConvertible, CustomStringConvertible, Identifiable, Hashable,
     Sendable
 {
     public var id: WindowId

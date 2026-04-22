@@ -14,6 +14,13 @@ struct SpaceMonitor {
 }
 
 private enum SpaceMonitorKey: DependencyKey {
+    static let previewValue = SpaceMonitor(activeSpace: {
+        AsyncStream { continuation in
+            continuation.yield()
+            continuation.finish()
+        }
+    })
+
     static let liveValue = SpaceMonitor(activeSpace: {
         let (stream, continuation) = AsyncStream<Void>.makeStream()
         let observer = NSWorkspace.shared.notificationCenter.addObserver(
