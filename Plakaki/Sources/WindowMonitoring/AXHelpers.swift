@@ -1,6 +1,10 @@
 @preconcurrency import AppKit
 @preconcurrency import ApplicationServices
 import Foundation
+import GroundControl
+
+@_silgen_name("_AXUIElementGetWindow")
+private func _AXUIElementGetWindow(_ element: AXUIElement, _ windowID: inout CGSWindowID) -> AXError
 
 enum AXHelperError: Error, CustomStringConvertible {
     case attributeUnsupported(CFString)
@@ -70,6 +74,15 @@ extension AXUIElement {
             origin: point(for: kAXPositionAttribute as CFString),
             size: size(for: kAXSizeAttribute as CFString)
         )
+    }
+
+    func windowID() throws -> CGSWindowID {
+        var windowID: CGSWindowID = 0
+        let result = _AXUIElementGetWindow(self, &windowID)
+        guard result == .success else {
+            throw AXHelperError.failure(result, "_AXUIElementGetWindow" as CFString)
+        }
+        return windowID
     }
 
     func windows() throws -> [AXUIElement] {
