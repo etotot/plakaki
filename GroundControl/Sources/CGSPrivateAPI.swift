@@ -133,9 +133,8 @@ public enum CGSPrivateAPI {
     }
 
     private static func loadOptionalSymbol<T>(named name: String) throws -> T? {
-        guard
-            let handle = rtldDefault,
-            let symbol = dlsym(handle, name)
+        guard let handle = rtldDefault,
+              let symbol = dlsym(handle, name)
         else {
             return nil
         }

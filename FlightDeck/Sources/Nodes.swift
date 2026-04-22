@@ -67,11 +67,9 @@ public struct Root: Sendable {
 
     mutating func appendTiledWindow(_ windowId: WindowId, spaceId: Space.ID) {
         for displayIndex in displays.indices {
-            guard
-                let spaceIndex = displays[displayIndex].spaces.firstIndex(
-                    where: { $0.id == spaceId }
-                )
-            else {
+            guard let spaceIndex = displays[displayIndex].spaces.firstIndex(
+                where: { $0.id == spaceId }
+            ) else {
                 continue
             }
 
@@ -99,9 +97,7 @@ public struct Root: Sendable {
         // likely maintain a windowId -> location index once move/remove gets hot.
         for displayIndex in displays.indices {
             for spaceIndex in displays[displayIndex].spaces.indices {
-                let shouldRemove =
-                    fromSpaceId == nil
-                        || displays[displayIndex].spaces[spaceIndex].id == fromSpaceId
+                let shouldRemove = fromSpaceId == nil || displays[displayIndex].spaces[spaceIndex].id == fromSpaceId
 
                 guard shouldRemove else {
                     continue
