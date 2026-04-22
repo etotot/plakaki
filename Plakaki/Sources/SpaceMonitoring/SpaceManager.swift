@@ -8,6 +8,9 @@
 import Dependencies
 import Foundation
 import GroundControl
+import OSLog
+
+private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "spaceMonitoring")
 
 struct SpaceManager {
     var readDisplays: @Sendable () -> [ManagedDisplaySpaces]
@@ -20,6 +23,7 @@ private enum SpaceManagerKey: DependencyKey {
             do {
                 return try ManagedSpacesReader.displays()
             } catch {
+                logger.error("Failed to read managed display spaces: \(error)")
                 assertionFailure("Failed to read managed display spaces: \(error)")
                 return []
             }
@@ -28,6 +32,7 @@ private enum SpaceManagerKey: DependencyKey {
             do {
                 return try ManagedSpacesReader.windows(for: space)
             } catch {
+                logger.error("Failed to read windows for managed space \(space.managedSpaceID): \(error)")
                 assertionFailure("Failed to read windows for managed space \(space.managedSpaceID): \(error)")
                 return []
             }

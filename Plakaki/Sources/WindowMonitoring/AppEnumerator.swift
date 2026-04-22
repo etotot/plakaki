@@ -7,6 +7,9 @@
 
 import AppKit
 import Foundation
+import OSLog
+
+private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "windowMonitoring")
 
 final class AppEnumerator {
     private var appMonitors: [pid_t: AppMonitor] = .init()
@@ -29,7 +32,7 @@ final class AppEnumerator {
                     let windowId = try window.windowID()
                     windowMap[windowId] = window
                 } catch {
-                    print(error)
+                    logger.error("Failed to read window ID: \(error)")
                 }
                 monitor?.subscribeToWindow(window)
             }

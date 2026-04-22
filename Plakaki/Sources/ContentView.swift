@@ -1,6 +1,9 @@
 import Dependencies
 import FlightDeck
+import OSLog
 import SwiftUI
+
+private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "contentView")
 
 public struct ContentView: View {
     let appEnumerator: AppEnumerator
@@ -31,7 +34,7 @@ public struct ContentView: View {
                     spaceManager: spaceManager, appEnumerator: appEnumerator
                 ).makeSnapshot()
 
-                print(snapshot)
+                logger.debug("Workspace snapshot: \(String(describing: snapshot))")
             }
             Button("Apply layout") {
                 Task {
@@ -42,19 +45,18 @@ public struct ContentView: View {
                     let graph = WorkspaceGraph(snapshot: snapshot)
                     let root = await graph.snapshot()
                     let geometry = DisplayGeometry.spaceGeometry(for: root.displays)
-                    print("Geometry: \(geometry)")
+                    logger.debug("Geometry: \(String(describing: geometry))")
                     let plan = LayoutEngine.computeLayout(for: root, spaceGeometry: geometry)
-                    print("Layout plan: \(plan.windows.count) windows")
+                    logger.debug("Layout plan: \(plan.windows.count) windows")
                     for (windowId, layout) in plan.windows {
                         guard let element = appEnumerator.windowMap[windowId] else {
-                            print("  [\(windowId)] no AX element — skipping")
+                            logger.info("[\(windowId)] no AX element — skipping")
                             continue
                         }
                         let title = element.title() ?? "<no title>"
                         let currentFrame = try? element.rect()
-                        print("  [\(windowId)] \(title)")
-                        print("    current: \(currentFrame.map { "\($0)" } ?? "unknown")")
-                        print("    target:  \(layout.frame)")
+                        logger.debug("[\(windowId)] \(title) current: \(String(describing: currentFrame))")
+                        logger.debug("[\(windowId)] target: \(String(describing: layout.frame))")
                         try? element.setFrame(layout.frame)
                     }
                 }
