@@ -5,7 +5,7 @@
 //  Created by Andrey Marshak on 23/04/2026.
 //
 
-public struct _Workspace: Sendable, Hashable {
-    public let displays: [_Display]
-    public let focusedDisplayID: _Display.ID?
+public struct Workspace: Sendable, Hashable {
+    public let displays: [Display]
+    public let focusedDisplayID: Display.ID?
 }

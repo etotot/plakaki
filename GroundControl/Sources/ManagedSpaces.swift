@@ -1,19 +1,19 @@
 import Foundation
 
 public enum ManagedSpacesReader {
-    public static func workspace() throws -> _Workspace {
+    public static func workspace() throws -> Workspace {
         let displays = try displays()
-        return _Workspace(
+        return Workspace(
             displays: displays,
             focusedDisplayID: displays.first?.id
         )
     }
 
-    public static func displays() throws -> [_Display] {
+    public static func displays() throws -> [Display] {
         try CGSPrivateAPI.copyManagedDisplaySpaces().map(parseDisplay)
     }
 
-    public static func windows(for space: _Space) throws -> [_Window] {
+    public static func windows(for space: Space) throws -> [Window] {
         guard let windowLookupID = space.windowLookupID else {
             return []
         }
@@ -21,7 +21,7 @@ public enum ManagedSpacesReader {
         return try windows(forSpaceID64: windowLookupID)
     }
 
-    public static func windows(forSpaceID64 spaceID64: UInt64) throws -> [_Window] {
+    public static func windows(forSpaceID64 spaceID64: UInt64) throws -> [Window] {
         try CGSPrivateAPI.copyWindows(forSpaceID64: spaceID64).map(makeWindow)
     }
 
@@ -39,7 +39,7 @@ public enum ManagedSpacesReader {
         return result
     }
 
-    private static func parseDisplay(_ rawDisplay: [String: Any]) throws -> _Display {
+    private static func parseDisplay(_ rawDisplay: [String: Any]) throws -> Display {
         guard let displayIdentifier = rawDisplay["Display Identifier"] as? String else {
             throw CGSPrivateAPIError.malformedManagedDisplayEntry
         }
@@ -47,7 +47,7 @@ public enum ManagedSpacesReader {
         let currentSpaceID = parseCurrentSpaceID(rawDisplay["Current Space"])
         let spaces = try (rawDisplay["Spaces"] as? [[String: Any]] ?? []).map(parseSpace)
 
-        return _Display(
+        return Display(
             id: displayIdentifier,
             spaces: spaces,
             focusedSpaceID: currentSpaceID ?? spaces.first?.id ?? 0
@@ -70,7 +70,7 @@ public enum ManagedSpacesReader {
         return nil
     }
 
-    private static func parseSpace(_ rawSpace: [String: Any]) throws -> _Space {
+    private static func parseSpace(_ rawSpace: [String: Any]) throws -> Space {
         guard let managedSpaceID = (rawSpace["ManagedSpaceID"] as? NSNumber)?.uint64Value else {
             throw CGSPrivateAPIError.malformedManagedSpaceEntry
         }
@@ -78,7 +78,7 @@ public enum ManagedSpacesReader {
         let windowLookupID = (rawSpace["id64"] as? NSNumber)?.uint64Value
         let windows = try windowLookupID.map(windows(forSpaceID64:)) ?? []
 
-        return _Space(
+        return Space(
             id: managedSpaceID,
             windowLookupID: windowLookupID,
             windows: windows,
@@ -86,8 +86,8 @@ public enum ManagedSpacesReader {
         )
     }
 
-    private static func makeWindow(id: CGSWindowID) -> _Window {
-        _Window(
+    private static func makeWindow(id: CGSWindowID) -> Window {
+        Window(
             id: id,
             pid: nil,
             bundleID: nil,

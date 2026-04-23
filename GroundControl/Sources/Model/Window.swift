@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct _Window: Sendable, Identifiable, Hashable {
+public struct Window: Sendable, Identifiable, Hashable {
     public let id: CGSWindowID
 
     public let pid: pid_t?

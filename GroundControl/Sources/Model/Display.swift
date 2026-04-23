@@ -7,9 +7,9 @@
 
 import Foundation
 
-public struct _Display: Sendable, Identifiable, Hashable {
+public struct Display: Sendable, Identifiable, Hashable {
     public let id: String
 
-    public let spaces: [_Space]
-    public let focusedSpaceID: _Space.ID
+    public let spaces: [Space]
+    public let focusedSpaceID: Space.ID
 }

@@ -7,10 +7,10 @@
 
 import Foundation
 
-public struct _Space: Sendable, Identifiable, Hashable {
+public struct Space: Sendable, Identifiable, Hashable {
     public let id: CGSSpaceID
     public let windowLookupID: UInt64? // Private id needed to query CGSPrivateAPI
 
-    public let windows: [_Window]
-    public let focusedWindowID: _Window.ID?
+    public let windows: [Window]
+    public let focusedWindowID: Window.ID?
 }
