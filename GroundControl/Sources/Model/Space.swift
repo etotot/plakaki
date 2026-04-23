@@ -13,4 +13,16 @@ public struct Space: Sendable, Identifiable, Hashable {
 
     public let windows: [Window]
     public let focusedWindowID: Window.ID?
+
+    public init(
+        id: CGSSpaceID,
+        windowLookupID: UInt64?,
+        windows: [Window],
+        focusedWindowID: Window.ID? = nil
+    ) {
+        self.id = id
+        self.windowLookupID = windowLookupID
+        self.windows = windows
+        self.focusedWindowID = focusedWindowID
+    }
 }

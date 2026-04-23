@@ -7,9 +7,6 @@
 
 import GroundControl
 
-// TODO: WindowId and CGSWindowID should be the same type shared between FlightDeck and GroundControl.
-public typealias WindowId = UInt32
-
 public struct Root: Sendable {
     public var displays: [Display]
     public var focusedDisplayId: Display.ID?
@@ -66,7 +63,7 @@ public struct Root: Sendable {
         displays[index].remove(spaceId: spaceId)
     }
 
-    mutating func appendTiledWindow(_ windowId: WindowId, spaceId: Space.ID) {
+    mutating func appendTiledWindow(_ windowId: Window.ID, spaceId: Space.ID) {
         for displayIndex in displays.indices {
             guard let spaceIndex = displays[displayIndex].spaces.firstIndex(
                 where: { $0.id == spaceId }
@@ -79,7 +76,7 @@ public struct Root: Sendable {
         }
     }
 
-    mutating func removeWindow(_ windowId: WindowId) {
+    mutating func removeWindow(_ windowId: Window.ID) {
         // TODO: This naive full graph scan is fine for now, but we should
         // likely maintain a windowId -> location index once move/remove gets hot.
         for displayIndex in displays.indices {
@@ -90,7 +87,7 @@ public struct Root: Sendable {
     }
 
     mutating func moveWindow(
-        _ windowId: WindowId,
+        _ windowId: Window.ID,
         fromSpaceId: Space.ID?,
         toSpaceId: Space.ID
     ) {
@@ -112,7 +109,7 @@ public struct Root: Sendable {
     }
 
     mutating func focusWindow(
-        _ windowId: WindowId
+        _ windowId: Window.ID
     ) {
         for displayIndex in displays.indices {
             for spaceIndex in displays[displayIndex].spaces.indices {
@@ -167,14 +164,14 @@ public struct Display: Identifiable, Sendable {
 public struct Space: Identifiable, Sendable {
     public var id: CGSSpaceID
     public var tiledRoot: Container?
-    public var floatingWindowIds: [WindowId]
-    public var focusedWindow: WindowId?
+    public var floatingWindowIds: [Window.ID]
+    public var focusedWindow: Window.ID?
 
     public init(
         id: CGSSpaceID,
         tiledRoot: Container? = nil,
-        floatingWindowIds: [WindowId] = [],
-        focusedWindow: WindowId? = nil
+        floatingWindowIds: [Window.ID] = [],
+        focusedWindow: Window.ID? = nil
     ) {
         self.id = id
         self.tiledRoot = tiledRoot
@@ -182,7 +179,7 @@ public struct Space: Identifiable, Sendable {
         self.focusedWindow = focusedWindow
     }
 
-    mutating func appendTiledWindow(_ windowId: WindowId) {
+    mutating func appendTiledWindow(_ windowId: Window.ID) {
         guard tiledRoot?.contains(windowId: windowId) != true else {
             return
         }
@@ -205,7 +202,7 @@ public struct Space: Identifiable, Sendable {
         }
     }
 
-    mutating func removeWindow(_ windowId: WindowId) {
+    mutating func removeWindow(_ windowId: Window.ID) {
         tiledRoot = tiledRoot?.removing(windowId: windowId)
         floatingWindowIds.removeAll { $0 == windowId }
 
@@ -216,7 +213,7 @@ public struct Space: Identifiable, Sendable {
 }
 
 extension Space {
-    var windowIds: [WindowId] {
+    var windowIds: [Window.ID] {
         (tiledRoot?.windowIds() ?? []) + floatingWindowIds
     }
 }
@@ -228,22 +225,22 @@ public indirect enum Container: Sendable, Equatable {
     }
 
     case stack(direction: LayoutDirection, children: [Container])
-    case leaf(windowId: WindowId)
+    case leaf(windowId: Window.ID)
 }
 
 private extension Container {
-    func windowIds() -> [WindowId] {
+    func windowIds() -> [Window.ID] {
         switch self {
         case let .leaf(windowId):
             [windowId]
         case let .stack(_, containers):
-            containers.reduce(into: [WindowId]()) { result, element in
+            containers.reduce(into: [Window.ID]()) { result, element in
                 result.append(contentsOf: element.windowIds())
             }
         }
     }
 
-    func contains(windowId: WindowId) -> Bool {
+    func contains(windowId: Window.ID) -> Bool {
         switch self {
         case let .leaf(leafWindowId):
             leafWindowId == windowId
@@ -252,7 +249,7 @@ private extension Container {
         }
     }
 
-    func removing(windowId: WindowId) -> Container? {
+    func removing(windowId: Window.ID) -> Container? {
         switch self {
         case let .leaf(leafWindowId):
             return leafWindowId == windowId ? nil : self

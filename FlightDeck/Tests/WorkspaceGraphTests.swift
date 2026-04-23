@@ -6,37 +6,34 @@
 //
 
 @testable import FlightDeck
+import GroundControl
 import Testing
 
 struct WorkspaceGraphTests {
-    // MARK: - Display Transformation
-
     @Test func displayIdIsPreserved() async {
-        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.multipleDisplays)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.multipleDisplays)
         let root = await graph.snapshot()
 
         #expect(root.displays[0].id == Fixture.DisplayID.main)
         #expect(root.displays[1].id == Fixture.DisplayID.external)
     }
 
-    // MARK: - Space Transformation
-
     @Test func spaceIdIsPreserved() async {
-        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.emptySpace)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.emptySpace)
         let root = await graph.snapshot()
 
         #expect(root.displays[0].spaces[0].id == Fixture.SpaceID.primary)
     }
 
     @Test func activeSpaceBecomesFocusedSpace() async {
-        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.activeSecondarySpace)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.activeSecondarySpace)
         let root = await graph.snapshot()
 
         #expect(root.displays[0].focusedSpaceId == Fixture.SpaceID.secondary)
     }
 
     @Test func spacesArePreservedInOrder() async {
-        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.activeSecondarySpace)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.activeSecondarySpace)
         let root = await graph.snapshot()
 
         #expect(
@@ -47,18 +44,15 @@ struct WorkspaceGraphTests {
         )
     }
 
-    // MARK: - Window Transformation
-
     @Test func emptySpaceCreatesNoTiledRoot() async {
-        let graph = WorkspaceGraph(snapshot: Fixture.Snapshot.emptySpace)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.emptySpace)
         let root = await graph.snapshot()
 
         #expect(root.displays[0].spaces[0].tiledRoot == nil)
     }
 
     @Test func singleWindowSpaceCreatesStack() async {
-        let fixture = Fixture.Snapshot.oneTileableWindow
-        let graph = WorkspaceGraph(snapshot: fixture)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.oneTileableWindow)
         let root = await graph.snapshot()
 
         let tiledRoot = root.displays[0].spaces[0].tiledRoot
@@ -74,8 +68,7 @@ struct WorkspaceGraphTests {
     }
 
     @Test func multipleWindowSpaceCreatesStack() async {
-        let fixture = Fixture.Snapshot.multipleTileableWindows
-        let graph = WorkspaceGraph(snapshot: fixture)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.multipleTileableWindows)
         let root = await graph.snapshot()
 
         let tiledRoot = root.displays[0].spaces[0].tiledRoot
@@ -93,16 +86,14 @@ struct WorkspaceGraphTests {
     }
 
     @Test func spaceWithoutTileableWindowsIsEmpty() async {
-        let fixture = Fixture.Snapshot.noTileableWindows
-        let graph = WorkspaceGraph(snapshot: fixture)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.noTileableWindows)
         let root = await graph.snapshot()
 
         #expect(root.displays[0].spaces[0].tiledRoot == nil)
     }
 
     @Test func nonTileableWindowsAreFiltered() async {
-        let fixture = Fixture.Snapshot.mixedWindows
-        let graph = WorkspaceGraph(snapshot: fixture)
+        let graph = WorkspaceGraph(workspace: Fixture.Workspace.mixedWindows)
         let root = await graph.snapshot()
 
         let tiledRoot = root.displays[0].spaces[0].tiledRoot
@@ -138,137 +129,141 @@ private enum Fixture {
         static let dialog: WindowId = 1005
     }
 
-    enum Window {
-        static let terminal = ObservedWindow(
+    enum WindowFixture {
+        static let terminal = GroundControl.Window(
             id: WindowID.terminal,
-            bundleId: "com.example.terminal",
+            bundleID: "com.example.terminal",
             title: "Terminal"
         )
 
-        static let browser = ObservedWindow(
+        static let browser = GroundControl.Window(
             id: WindowID.browser,
-            bundleId: "com.example.browser",
+            bundleID: "com.example.browser",
             title: "Browser"
         )
 
-        static let notes = ObservedWindow(
+        static let notes = GroundControl.Window(
             id: WindowID.notes,
-            bundleId: "com.example.notes",
+            bundleID: "com.example.notes",
             title: "Notes"
         )
 
-        static let minimized = ObservedWindow(
+        static let minimized = GroundControl.Window(
             id: WindowID.minimized,
-            bundleId: "com.example.minimized",
+            bundleID: "com.example.minimized",
             title: "Minimized",
             isMinimized: true
         )
 
-        static let dialog = ObservedWindow(
+        static let dialog = GroundControl.Window(
             id: WindowID.dialog,
-            bundleId: "com.example.dialog",
+            bundleID: "com.example.dialog",
             title: "Dialog",
             isTileable: false
         )
     }
 
-    enum Space {
-        static let empty = ObservedSpace(id: SpaceID.primary)
+    enum SpaceFixture {
+        static let empty = GroundControl.Space(id: SpaceID.primary, windowLookupID: nil, windows: [])
 
-        static let secondary = ObservedSpace(id: SpaceID.secondary)
+        static let secondary = GroundControl.Space(id: SpaceID.secondary, windowLookupID: nil, windows: [])
 
-        static let oneTileableWindow = ObservedSpace(
+        static let oneTileableWindow = GroundControl.Space(
             id: SpaceID.primary,
-            windows: [Window.terminal]
+            windowLookupID: nil,
+            windows: [WindowFixture.terminal]
         )
 
-        static let multipleTileableWindows = ObservedSpace(
+        static let multipleTileableWindows = GroundControl.Space(
             id: SpaceID.primary,
+            windowLookupID: nil,
             windows: [
-                Window.terminal,
-                Window.browser,
-                Window.notes
+                WindowFixture.terminal,
+                WindowFixture.browser,
+                WindowFixture.notes
             ]
         )
 
-        static let noTileableWindows = ObservedSpace(
+        static let noTileableWindows = GroundControl.Space(
             id: SpaceID.primary,
+            windowLookupID: nil,
             windows: [
-                Window.minimized,
-                Window.dialog
+                WindowFixture.minimized,
+                WindowFixture.dialog
             ]
         )
 
-        static let mixedWindows = ObservedSpace(
+        static let mixedWindows = GroundControl.Space(
             id: SpaceID.primary,
+            windowLookupID: nil,
             windows: [
-                Window.terminal,
-                Window.minimized,
-                Window.dialog,
-                Window.browser
+                WindowFixture.terminal,
+                WindowFixture.minimized,
+                WindowFixture.dialog,
+                WindowFixture.browser
             ]
         )
     }
 
-    enum Display {
-        static let oneSpace = ObservedDisplay(
+    enum DisplayFixture {
+        static let oneSpace = GroundControl.Display(
             id: DisplayID.main,
-            activeSpaceId: SpaceID.primary,
-            spaces: [Space.empty]
+            spaces: [SpaceFixture.empty],
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let activeSecondarySpace = ObservedDisplay(
+        static let activeSecondarySpace = GroundControl.Display(
             id: DisplayID.main,
-            activeSpaceId: SpaceID.secondary,
             spaces: [
-                Space.empty,
-                Space.secondary
-            ]
+                SpaceFixture.empty,
+                SpaceFixture.secondary
+            ],
+            focusedSpaceID: SpaceID.secondary
         )
 
-        static let external = ObservedDisplay(
+        static let external = GroundControl.Display(
             id: DisplayID.external,
-            activeSpaceId: SpaceID.secondary,
-            spaces: [Space.secondary]
+            spaces: [SpaceFixture.secondary],
+            focusedSpaceID: SpaceID.secondary
         )
     }
 
-    enum Snapshot {
-        static let emptySpace = singleDisplaySnapshot(space: Space.empty)
+    enum Workspace {
+        static let emptySpace = singleDisplayWorkspace(space: SpaceFixture.empty)
 
-        static let oneTileableWindow = singleDisplaySnapshot(
-            space: Space.oneTileableWindow
+        static let oneTileableWindow = singleDisplayWorkspace(
+            space: SpaceFixture.oneTileableWindow
         )
 
-        static let multipleTileableWindows = singleDisplaySnapshot(
-            space: Space.multipleTileableWindows
+        static let multipleTileableWindows = singleDisplayWorkspace(
+            space: SpaceFixture.multipleTileableWindows
         )
 
-        static let noTileableWindows = singleDisplaySnapshot(
-            space: Space.noTileableWindows
+        static let noTileableWindows = singleDisplayWorkspace(
+            space: SpaceFixture.noTileableWindows
         )
 
-        static let mixedWindows = singleDisplaySnapshot(space: Space.mixedWindows)
+        static let mixedWindows = singleDisplayWorkspace(space: SpaceFixture.mixedWindows)
 
-        static let activeSecondarySpace = WorkspaceSnapshot(
-            displays: [Display.activeSecondarySpace]
+        static let activeSecondarySpace = GroundControl.Workspace(
+            displays: [DisplayFixture.activeSecondarySpace]
         )
 
-        static let multipleDisplays = WorkspaceSnapshot(
+        static let multipleDisplays = GroundControl.Workspace(
             displays: [
-                Display.oneSpace,
-                Display.external
+                DisplayFixture.oneSpace,
+                DisplayFixture.external
             ]
         )
     }
 
-    static func singleDisplaySnapshot(space: ObservedSpace) -> WorkspaceSnapshot {
-        WorkspaceSnapshot(
+    static func singleDisplayWorkspace(space: GroundControl.Space) -> GroundControl.Workspace {
+        GroundControl.Workspace(
             displays: [
-                ObservedDisplay(
+                GroundControl.Display(
                     id: DisplayID.main,
-                    activeSpaceId: space.id,
-                    spaces: [space]
+                    spaces: [space],
+                    focusedSpaceID: space.id
                 )
             ]
         )

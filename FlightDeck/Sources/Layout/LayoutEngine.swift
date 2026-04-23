@@ -7,6 +7,7 @@
 
 import CoreGraphics
 import Foundation
+import GroundControl
 
 public struct SpaceGeometry {
     let spaceFrames: [Space.ID: CGRect]
@@ -14,7 +15,7 @@ public struct SpaceGeometry {
 
 public enum LayoutEngine {
     public static func computeLayout(for root: Root, spaceGeometry: [Space.ID: CGRect]) -> LayoutPlan {
-        var result = [WindowId: WindowLayout]()
+        var result = [Window.ID: WindowLayout]()
         for space in root.displays.compactMap(\.focusedSpace) {
             guard let rect = spaceGeometry[space.id] else { continue }
             result.merge(computeLayout(for: space, geometry: rect).windows, uniquingKeysWith: { _, new in new })
@@ -32,16 +33,18 @@ public enum LayoutEngine {
     }
 
     private static func computeLayout(for container: Container, geometry: CGRect,
-                                      focusedWindowId: WindowId?) -> LayoutPlan
+                                      focusedWindowId: Window.ID?) -> LayoutPlan
     {
         let gap = 8.0
 
         switch container {
         case let .leaf(windowId):
-            return .init(windows: [windowId: .init(frame: geometry, zIndex: windowId == focusedWindowId ? 1 : 0)])
+            return .init(windows: [
+                windowId: .init(frame: geometry, zIndex: windowId == focusedWindowId ? 1 : 0)
+            ])
 
-        case let .stack(direction, children):
-            var result = [WindowId: WindowLayout]()
+        case let .stack(_, children):
+            var result = [Window.ID: WindowLayout]()
 
             let windowWidth = (geometry.width - CGFloat(children.count - 1) * gap) / CGFloat(children.count)
             for childIndex in children.indices {

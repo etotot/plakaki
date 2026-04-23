@@ -8,4 +8,12 @@
 public struct Workspace: Sendable, Hashable {
     public let displays: [Display]
     public let focusedDisplayID: Display.ID?
+
+    public init(
+        displays: [Display],
+        focusedDisplayID: Display.ID? = nil
+    ) {
+        self.displays = displays
+        self.focusedDisplayID = focusedDisplayID
+    }
 }

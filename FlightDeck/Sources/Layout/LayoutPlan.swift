@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import GroundControl
 
 public struct LayoutPlan: Sendable, Equatable {
-    public var windows: [WindowId: WindowLayout]
+    public var windows: [Window.ID: WindowLayout]
 }
 
 extension LayoutPlan {

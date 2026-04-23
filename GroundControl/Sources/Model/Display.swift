@@ -12,4 +12,14 @@ public struct Display: Sendable, Identifiable, Hashable {
 
     public let spaces: [Space]
     public let focusedSpaceID: Space.ID
+
+    public init(
+        id: String,
+        spaces: [Space],
+        focusedSpaceID: Space.ID
+    ) {
+        self.id = id
+        self.spaces = spaces
+        self.focusedSpaceID = focusedSpaceID
+    }
 }

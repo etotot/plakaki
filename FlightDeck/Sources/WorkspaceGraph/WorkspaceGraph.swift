@@ -5,11 +5,13 @@
 //  Created by Andrey Marshak on 21/04/2026.
 //
 
+import GroundControl
+
 public actor WorkspaceGraph {
     private var root: Root
 
-    public init(snapshot: WorkspaceSnapshot) {
-        root = Self.transform(snapshot: snapshot)
+    public init(workspace: GroundControl.Workspace) {
+        root = Self.transform(workspace: workspace)
     }
 
     public func snapshot() -> Root {
@@ -44,7 +46,7 @@ public actor WorkspaceGraph {
         }
     }
 
-    private func toggleFloating(_ windowId: WindowId) {
+    private func toggleFloating(_ windowId: Window.ID) {
         // TODO: This naive full graph scan is fine for now, but we should
         // likely maintain a windowId -> location index once move/remove gets hot.
         for displayIndex in root.displays.indices {
@@ -68,8 +70,8 @@ public actor WorkspaceGraph {
 
     private func handle(observation: WorkspaceObservation) {
         switch observation {
-        case let .snapshotChanged(newSnapshot):
-            root = Self.transform(snapshot: newSnapshot)
+        case let .snapshotChanged(newWorkspace):
+            root = Self.transform(workspace: newWorkspace)
             return
 
         case let .displayConnected(display):
@@ -117,31 +119,31 @@ public actor WorkspaceGraph {
 
     // TODO: Consider moving to separate file
 
-    private static func transform(snapshot: WorkspaceSnapshot) -> Root {
+    private static func transform(workspace: GroundControl.Workspace) -> Root {
         Root(
-            displays: snapshot.displays.map { transform(display: $0) },
-            focusedDisplayId: snapshot.displays.first?.id
+            displays: workspace.displays.map { transform(display: $0) },
+            focusedDisplayId: workspace.focusedDisplayID ?? workspace.displays.first?.id
         )
     }
 
-    private static func transform(display: ObservedDisplay) -> Display {
+    private static func transform(display: GroundControl.Display) -> Display {
         Display(
             id: display.id,
             spaces: display.spaces.map { transform(space: $0) },
-            focusedSpaceId: display.activeSpaceId
+            focusedSpaceId: display.focusedSpaceID
         )
     }
 
-    private static func transform(space: ObservedSpace) -> Space {
+    private static func transform(space: GroundControl.Space) -> Space {
         Space(
             id: space.id,
             tiledRoot: transform(windows: space.windows),
             floatingWindowIds: [], // TODO: Will have to apply floating rules there when supported
-            focusedWindow: nil
+            focusedWindow: space.focusedWindowID
         )
     }
 
-    private static func transform(windows: [ObservedWindow]) -> Container? {
+    private static func transform(windows: [GroundControl.Window]) -> Container? {
         let tiledWindows = windows.filter {
             $0.isTileable && !$0.isMinimized
         }

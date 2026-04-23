@@ -6,11 +6,12 @@
 //
 
 @testable import FlightDeck
+import GroundControl
 import Testing
 
 struct WorkspaceEventTests {
     @Test func snapshotChanged() async {
-        let graph = WorkspaceGraph(snapshot: .init())
+        let graph = WorkspaceGraph(workspace: .init(displays: []))
 
         await graph.handle(EventFixture.Observation.snapshotChanged)
 
@@ -23,11 +24,9 @@ struct WorkspaceEventTests {
         )
     }
 
-    // MARK: - Display Events
-
     @Test func displayConnected() async {
         let graph = WorkspaceGraph(
-            snapshot: WorkspaceSnapshot(displays: [EventFixture.Display.main])
+            workspace: GroundControl.Workspace(displays: [EventFixture.DisplayFixture.main])
         )
 
         await graph.handle(EventFixture.Observation.displayConnected)
@@ -42,7 +41,7 @@ struct WorkspaceEventTests {
     }
 
     @Test func displayDisconnected() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.twoDisplays)
+        let graph = WorkspaceGraph(workspace: EventFixture.WorkspaceFixture.twoDisplays)
 
         await graph.handle(EventFixture.Observation.displayDisconnected)
 
@@ -54,11 +53,9 @@ struct WorkspaceEventTests {
         )
     }
 
-    // MARK: - Space Events
-
     @Test func activeSpaceChanged() async {
         let graph = WorkspaceGraph(
-            snapshot: WorkspaceSnapshot(displays: [EventFixture.Display.main])
+            workspace: GroundControl.Workspace(displays: [EventFixture.DisplayFixture.main])
         )
 
         var root = await graph.snapshot()
@@ -76,7 +73,7 @@ struct WorkspaceEventTests {
 
     @Test func spaceAdded() async {
         let graph = WorkspaceGraph(
-            snapshot: EventFixture.Snapshot.oneDisplayOneSpace
+            workspace: EventFixture.WorkspaceFixture.oneDisplayOneSpace
         )
 
         await graph.handle(EventFixture.Observation.spaceAdded)
@@ -92,7 +89,7 @@ struct WorkspaceEventTests {
 
     @Test func spaceRemoved() async {
         let graph = WorkspaceGraph(
-            snapshot: EventFixture.Snapshot.oneDisplayTwoSpaces
+            workspace: EventFixture.WorkspaceFixture.oneDisplayTwoSpaces
         )
 
         await graph.handle(EventFixture.Observation.spaceRemoved)
@@ -106,10 +103,8 @@ struct WorkspaceEventTests {
         )
     }
 
-    // MARK: - Window Events
-
     @Test func windowDiscovered() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayEmptySpace)
+        let graph = WorkspaceGraph(workspace: EventFixture.WorkspaceFixture.oneDisplayEmptySpace)
 
         await graph.handle(EventFixture.Observation.windowDiscovered)
 
@@ -126,7 +121,7 @@ struct WorkspaceEventTests {
     }
 
     @Test func windowUpdated() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayOneSpace)
+        let graph = WorkspaceGraph(workspace: EventFixture.WorkspaceFixture.oneDisplayOneSpace)
 
         await graph.handle(EventFixture.Observation.windowUpdated)
 
@@ -143,7 +138,7 @@ struct WorkspaceEventTests {
     }
 
     @Test func windowRemoved() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayOneSpace)
+        let graph = WorkspaceGraph(workspace: EventFixture.WorkspaceFixture.oneDisplayOneSpace)
 
         await graph.handle(EventFixture.Observation.windowRemoved)
 
@@ -154,7 +149,7 @@ struct WorkspaceEventTests {
     }
 
     @Test func windowMoved() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.Snapshot.oneDisplayTwoSpaces)
+        let graph = WorkspaceGraph(workspace: EventFixture.WorkspaceFixture.oneDisplayTwoSpaces)
 
         await graph.handle(EventFixture.Observation.windowMoved)
 
@@ -171,10 +166,8 @@ struct WorkspaceEventTests {
         )
     }
 
-    // MARK: - Commands
-
     @Test func focusWindow() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.windowFocusTarget)
+        let graph = WorkspaceGraph(workspace: EventFixture.CommandWorkspace.windowFocusTarget)
 
         var root = await graph.snapshot()
         #expect(root.displays[0].spaces[0].focusedWindow == nil)
@@ -186,7 +179,7 @@ struct WorkspaceEventTests {
     }
 
     @Test func focusSpace() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.spaceFocusTarget)
+        let graph = WorkspaceGraph(workspace: EventFixture.CommandWorkspace.spaceFocusTarget)
 
         var root = await graph.snapshot()
         #expect(root.displays[0].focusedSpaceId == EventFixture.SpaceID.primary)
@@ -198,7 +191,7 @@ struct WorkspaceEventTests {
     }
 
     @Test func focusDisplay() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.displayFocusTarget)
+        let graph = WorkspaceGraph(workspace: EventFixture.CommandWorkspace.displayFocusTarget)
 
         var root = await graph.snapshot()
         #expect(root.focusedDisplayId == EventFixture.DisplayID.main)
@@ -210,7 +203,7 @@ struct WorkspaceEventTests {
     }
 
     @Test func toggleFloating() async {
-        let graph = WorkspaceGraph(snapshot: EventFixture.CommandSnapshot.floatingToggleTarget)
+        let graph = WorkspaceGraph(workspace: EventFixture.CommandWorkspace.floatingToggleTarget)
 
         var root = await graph.snapshot()
         #expect(root.displays[0].spaces[0].floatingWindowIds.isEmpty)
@@ -238,122 +231,125 @@ private enum EventFixture {
         static let browser: WindowId = 1002
     }
 
-    enum Window {
-        static let terminal = ObservedWindow(
+    enum WindowFixture {
+        static let terminal = GroundControl.Window(
             id: WindowID.terminal,
-            bundleId: "com.example.terminal",
+            bundleID: "com.example.terminal",
             title: "Terminal"
         )
 
-        static let updatedTerminal = ObservedWindow(
+        static let updatedTerminal = GroundControl.Window(
             id: WindowID.terminal,
-            bundleId: "com.example.terminal",
+            bundleID: "com.example.terminal",
             title: "Terminal Updated"
         )
 
-        static let browser = ObservedWindow(
+        static let browser = GroundControl.Window(
             id: WindowID.browser,
-            bundleId: "com.example.browser",
+            bundleID: "com.example.browser",
             title: "Browser"
         )
     }
 
-    enum Space {
-        static let empty = ObservedSpace(id: SpaceID.primary)
+    enum SpaceFixture {
+        static let empty = GroundControl.Space(id: SpaceID.primary, windowLookupID: nil, windows: [])
 
-        static let primary = ObservedSpace(
+        static let primary = GroundControl.Space(
             id: SpaceID.primary,
-            windows: [Window.terminal]
+            windowLookupID: nil,
+            windows: [WindowFixture.terminal]
         )
 
-        static let primaryWithTwoWindows = ObservedSpace(
+        static let primaryWithTwoWindows = GroundControl.Space(
             id: SpaceID.primary,
+            windowLookupID: nil,
             windows: [
-                Window.terminal,
-                Window.browser
+                WindowFixture.terminal,
+                WindowFixture.browser
             ]
         )
 
-        static let secondary = ObservedSpace(
+        static let secondary = GroundControl.Space(
             id: SpaceID.secondary,
-            windows: [Window.browser]
+            windowLookupID: nil,
+            windows: [WindowFixture.browser]
         )
     }
 
-    enum Display {
-        static let mainWithEmptySpace = ObservedDisplay(
+    enum DisplayFixture {
+        static let mainWithEmptySpace = GroundControl.Display(
             id: DisplayID.main,
-            activeSpaceId: SpaceID.primary,
-            spaces: [Space.empty]
+            spaces: [SpaceFixture.empty],
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let main = ObservedDisplay(
+        static let main = GroundControl.Display(
             id: DisplayID.main,
-            activeSpaceId: SpaceID.primary,
-            spaces: [Space.primary]
+            spaces: [SpaceFixture.primary],
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let mainWithTwoWindowSpace = ObservedDisplay(
+        static let mainWithTwoWindowSpace = GroundControl.Display(
             id: DisplayID.main,
-            activeSpaceId: SpaceID.primary,
-            spaces: [Space.primaryWithTwoWindows]
+            spaces: [SpaceFixture.primaryWithTwoWindows],
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let mainWithTwoSpaces = ObservedDisplay(
+        static let mainWithTwoSpaces = GroundControl.Display(
             id: DisplayID.main,
-            activeSpaceId: SpaceID.primary,
             spaces: [
-                Space.primary,
-                Space.secondary
-            ]
+                SpaceFixture.primary,
+                SpaceFixture.secondary
+            ],
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let external = ObservedDisplay(
+        static let external = GroundControl.Display(
             id: DisplayID.external,
-            activeSpaceId: SpaceID.secondary,
-            spaces: [Space.secondary]
+            spaces: [SpaceFixture.secondary],
+            focusedSpaceID: SpaceID.secondary
         )
     }
 
-    enum Snapshot {
-        static let oneDisplayEmptySpace = WorkspaceSnapshot(
-            displays: [Display.mainWithEmptySpace]
+    enum WorkspaceFixture {
+        static let oneDisplayEmptySpace = GroundControl.Workspace(
+            displays: [DisplayFixture.mainWithEmptySpace]
         )
 
-        static let oneDisplayOneSpace = WorkspaceSnapshot(
-            displays: [Display.main]
+        static let oneDisplayOneSpace = GroundControl.Workspace(
+            displays: [DisplayFixture.main]
         )
 
-        static let oneDisplayTwoWindowSpace = WorkspaceSnapshot(
-            displays: [Display.mainWithTwoWindowSpace]
+        static let oneDisplayTwoWindowSpace = GroundControl.Workspace(
+            displays: [DisplayFixture.mainWithTwoWindowSpace]
         )
 
-        static let oneDisplayTwoSpaces = WorkspaceSnapshot(
-            displays: [Display.mainWithTwoSpaces]
+        static let oneDisplayTwoSpaces = GroundControl.Workspace(
+            displays: [DisplayFixture.mainWithTwoSpaces]
         )
 
-        static let twoDisplays = WorkspaceSnapshot(
+        static let twoDisplays = GroundControl.Workspace(
             displays: [
-                Display.main,
-                Display.external
+                DisplayFixture.main,
+                DisplayFixture.external
             ]
         )
     }
 
-    enum CommandSnapshot {
-        static let windowFocusTarget = Snapshot.oneDisplayTwoWindowSpace
-        static let spaceFocusTarget = Snapshot.oneDisplayTwoSpaces
-        static let displayFocusTarget = Snapshot.twoDisplays
-        static let floatingToggleTarget = Snapshot.oneDisplayOneSpace
+    enum CommandWorkspace {
+        static let windowFocusTarget = WorkspaceFixture.oneDisplayTwoWindowSpace
+        static let spaceFocusTarget = WorkspaceFixture.oneDisplayTwoSpaces
+        static let displayFocusTarget = WorkspaceFixture.twoDisplays
+        static let floatingToggleTarget = WorkspaceFixture.oneDisplayOneSpace
     }
 
     enum Observation {
         static let snapshotChanged = WorkspaceEvent.observation(
-            .snapshotChanged(Snapshot.twoDisplays)
+            .snapshotChanged(WorkspaceFixture.twoDisplays)
         )
 
         static let displayConnected = WorkspaceEvent.observation(
-            .displayConnected(Display.external)
+            .displayConnected(DisplayFixture.external)
         )
 
         static let displayDisconnected = WorkspaceEvent.observation(
@@ -368,7 +364,7 @@ private enum EventFixture {
         )
 
         static let spaceAdded = WorkspaceEvent.observation(
-            .spaceAdded(Space.secondary, displayId: DisplayID.main)
+            .spaceAdded(SpaceFixture.secondary, displayId: DisplayID.main)
         )
 
         static let spaceRemoved = WorkspaceEvent.observation(
@@ -376,11 +372,11 @@ private enum EventFixture {
         )
 
         static let windowDiscovered = WorkspaceEvent.observation(
-            .windowDiscovered(Window.terminal, spaceId: SpaceID.primary)
+            .windowDiscovered(WindowFixture.terminal, spaceId: SpaceID.primary)
         )
 
         static let windowUpdated = WorkspaceEvent.observation(
-            .windowUpdated(Window.updatedTerminal, spaceId: SpaceID.primary)
+            .windowUpdated(WindowFixture.updatedTerminal, spaceId: SpaceID.primary)
         )
 
         static let windowRemoved = WorkspaceEvent.observation(
