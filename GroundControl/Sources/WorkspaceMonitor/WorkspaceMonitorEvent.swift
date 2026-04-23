@@ -7,13 +7,8 @@
 
 import Foundation
 
-enum WorkspaceMonitorEvent {
-    case activeSpaceChanged
-    case appWindowCreated(pid_t)
-    case appFocusedWindowChanged(pid_t)
-    case windowMoved(CGSWindowID?)
-    case windowResized(CGSWindowID?)
-    case windowDestroyed(CGSWindowID?)
-    case applicationLaunched(pid_t)
-    case applicationTerminated(pid_t)
+private enum WorkspaceMonitorEvent {
+    case space(SpaceEvent)
+//    case application(ApplicationEvent)
+//    case accessibility(AccessibilityEvent)
 }

@@ -1,5 +1,5 @@
 //
-//  WorkspaceMonitor.swift
+//  WorkspaceMonitorDependency.swift
 //  Plakaki
 //
 //  Created by Andrey Marshak on 23/04/2026.
@@ -11,7 +11,7 @@ import Dependencies
 import Foundation
 import GroundControl
 
-struct WorkspaceMonitor {
+struct WorkspaceMonitorDependency {
     var workspaces: @Sendable () async -> AsyncStream<Workspace>
 
     var readWorkspace: @Sendable () async -> Workspace
@@ -21,10 +21,10 @@ struct WorkspaceMonitor {
 }
 
 private enum WorkspaceMonitorKey: DependencyKey {
-    static let liveValue: Plakaki.WorkspaceMonitor = {
-        let monitor = GroundControl.WorkspaceMonitor()
+    static let liveValue: WorkspaceMonitorDependency = {
+        let monitor = WorkspaceMonitor()
 
-        return WorkspaceMonitor {
+        return WorkspaceMonitorDependency {
             await monitor.workspaces()
         } readWorkspace: {
             // swiftlint:disable:next force_try
@@ -42,7 +42,7 @@ private enum WorkspaceMonitorKey: DependencyKey {
 }
 
 extension DependencyValues {
-    var workspaceMonitor: Plakaki.WorkspaceMonitor {
+    var workspaceMonitor: WorkspaceMonitorDependency {
         get { self[WorkspaceMonitorKey.self] }
         set { self[WorkspaceMonitorKey.self] = newValue }
     }

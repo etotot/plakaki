@@ -15,7 +15,6 @@ private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "menuBar"
 
 struct MenuBarContent: View {
     @Dependency(\.workspaceMonitor) var workspaceMonitor
-    @Dependency(\.spaceMonitor) var spaceMonitor
 
     @State private var windowMap: [(GroundControl.Space, [GroundControl.Window])] = .init()
 
@@ -35,16 +34,16 @@ struct MenuBarContent: View {
         }
         .frame(width: 300, height: 400)
         .task {
-            await refresh()
+            await refresh(workspaceMonitor.readWorkspace())
 
-            for await _ in spaceMonitor.spaceEvents().activeSpaceChangedEvents {
-                await refresh()
+            for await workspace in await workspaceMonitor.workspaces() {
+                await refresh(workspace)
             }
         }
     }
 
-    private func refresh() async {
-        let displays = await workspaceMonitor.readWorkspace().displays
+    private func refresh(_ workspace: Workspace) async {
+        let displays = workspace.displays
         logger.debug("refresh: \(displays.count) displays")
 
         let activeSpaces = displays.compactMap { display -> GroundControl.Space? in

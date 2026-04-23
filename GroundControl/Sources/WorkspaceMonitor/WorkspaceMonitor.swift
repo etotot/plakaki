@@ -22,20 +22,41 @@ public actor WorkspaceMonitor {
 
     private let threadPool: AXObserverThreadPool
 
-    private var currentWorkspace: Workspace?
+    private var currentWorkspace: Workspace? {
+        didSet {
+            guard let currentWorkspace else {
+                return
+            }
+
+            for continuation in subscribers.values {
+                continuation.yield(currentWorkspace)
+            }
+        }
+    }
+
     private var subscribers: [UUID: AsyncStream<Workspace>.Continuation] = [:]
 
     public init() {
         threadPool = SingleAXObserverThreadPool()
     }
 
+    deinit {
+        monitoringTask?.cancel()
+    }
+
+    private var monitoringTask: Task<Void, Never>?
+
     public func startMonitoring() {
-        guard currentWorkspace == nil else {
-            return
-        }
+        guard monitoringTask == nil else { return }
 
         enumerateApplications()
         currentWorkspace = try? enrich(ManagedSpacesReader.workspace())
+
+        monitoringTask = Task { [weak self] in
+            for await spaceEvent in SpaceMonitor.events() {
+                await self?.handleSpaceEvent(spaceEvent)
+            }
+        }
     }
 
     public func workspace() throws -> Workspace {
@@ -108,6 +129,15 @@ public actor WorkspaceMonitor {
             }
         }
     }
+
+    // MARK: - Event Management
+
+    private func handleSpaceEvent(_: SpaceEvent) {
+        // swiftlint:disable:next force_try
+        currentWorkspace = try! enrich(ManagedSpacesReader.workspace())
+    }
+
+    // MARK: - Workspace Helpers
 
     private func enrich(_ workspace: Workspace) -> Workspace {
         Workspace(

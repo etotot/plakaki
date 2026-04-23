@@ -11,15 +11,14 @@ import SwiftUI
 
 struct MenuBarLabel: View {
     @Dependency(\.workspaceMonitor) var workspaceMonitor
-    @Dependency(\.spaceMonitor) var spaceMonitor
 
     @State private var label: String = "·"
 
     var body: some View {
         Text(label)
             .task {
-                for await _ in spaceMonitor.spaceEvents().activeSpaceChangedEvents {
-                    let displays = await workspaceMonitor.readWorkspace().displays
+                for await workspace in await workspaceMonitor.workspaces() {
+                    let displays = workspace.displays
                     await MainActor.run {
                         label = Self.makeLabel(for: displays)
                     }
