@@ -23,10 +23,6 @@ public struct ContentView: View {
                 }
             )
 
-            Button("Start app Monitoring") {
-                Task { await workspaceMonitor.enumerateApplications() }
-            }
-
             Button("Print workspace") {
                 Task {
                     let workspace = await workspaceMonitor.readWorkspace()

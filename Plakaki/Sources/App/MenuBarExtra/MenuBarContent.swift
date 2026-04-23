@@ -34,7 +34,6 @@ struct MenuBarContent: View {
         }
         .frame(width: 300, height: 400)
         .task {
-            await workspaceMonitor.enumerateApplications()
             await refresh()
 
             for await _ in workspaceMonitor.activeSpaceChangedEvent() {

@@ -14,16 +14,73 @@ private struct WindowMetadata {
 
 public actor WorkspaceMonitor {
     private var appMonitors: [pid_t: AppMonitor] = [:]
+
     private var applications: [pid_t: NSRunningApplication] = [:]
+
     private var windowElements: [CGSWindowID: AXUIElement] = [:]
     private var windowMetadata: [CGSWindowID: WindowMetadata] = [:]
+
     private let threadPool: AXObserverThreadPool
+
+    private var currentWorkspace: Workspace?
+    private var subscribers: [UUID: AsyncStream<Workspace>.Continuation] = [:]
 
     public init() {
         threadPool = SingleAXObserverThreadPool()
     }
 
-    public func enumerateApplications() {
+    public func startMonitoring() {
+        guard currentWorkspace == nil else {
+            return
+        }
+
+        enumerateApplications()
+        currentWorkspace = try? enrich(ManagedSpacesReader.workspace())
+    }
+
+    public func workspace() throws -> Workspace {
+        if let currentWorkspace {
+            return currentWorkspace
+        }
+
+        return try enrich(ManagedSpacesReader.workspace())
+    }
+
+    public func workspaces() -> AsyncStream<Workspace> {
+        startMonitoring()
+
+        let (stream, continuation) = AsyncStream<Workspace>.makeStream()
+        let uuid = UUID()
+
+        subscribers[uuid] = continuation
+        continuation.onTermination = { [weak self] _ in
+            Task { [weak self] in
+                await self?.cancelSubscription(uuid)
+            }
+        }
+
+        if let currentWorkspace {
+            continuation.yield(currentWorkspace)
+        }
+
+        return stream
+    }
+
+    public func setFrame(_ frame: CGRect, forWindowID windowID: CGSWindowID) async throws {
+        guard let element = windowElements[windowID] else {
+            return
+        }
+
+        try await MainActor.run {
+            try element.setFrame(frame)
+        }
+    }
+
+    private func cancelSubscription(_ uuid: UUID) {
+        subscribers[uuid] = nil
+    }
+
+    private func enumerateApplications() {
         let runningApplications = NSWorkspace.shared.runningApplications
         applications = runningApplications.reduce(into: [:]) { result, application in
             result[application.processIdentifier] = application
@@ -49,21 +106,6 @@ public actor WorkspaceMonitor {
 
                 monitor?.subscribeToWindow(window)
             }
-        }
-    }
-
-    public func workspace() throws -> Workspace {
-        enumerateApplications()
-        return try enrich(ManagedSpacesReader.workspace())
-    }
-
-    public func setFrame(_ frame: CGRect, forWindowID windowID: CGSWindowID) async throws {
-        guard let element = windowElements[windowID] else {
-            return
-        }
-
-        try await MainActor.run {
-            try element.setFrame(frame)
         }
     }
 

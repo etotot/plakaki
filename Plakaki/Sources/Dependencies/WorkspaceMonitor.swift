@@ -12,7 +12,7 @@ import Foundation
 import GroundControl
 
 struct WorkspaceMonitor {
-    var enumerateApplications: @Sendable () async -> Void
+    var workspaces: @Sendable () async -> AsyncStream<Workspace>
 
     var readWorkspace: @Sendable () async -> Workspace
     var readWindows: @Sendable (Space.ID) async -> [Window]
@@ -27,7 +27,7 @@ private enum WorkspaceMonitorKey: DependencyKey {
         let monitor = GroundControl.WorkspaceMonitor()
 
         return WorkspaceMonitor {
-            await monitor.enumerateApplications()
+            await monitor.workspaces()
         } readWorkspace: {
             // swiftlint:disable:next force_try
             try! await monitor.workspace()
