@@ -7,19 +7,19 @@
 
 import GroundControl
 
-public struct Root: Sendable {
-    public var displays: [Display]
-    public var focusedDisplayId: Display.ID?
+public struct LayoutRoot: Sendable {
+    public var displays: [LayoutDisplay]
+    public var focusedDisplayID: LayoutDisplay.ID?
 
     public init(
-        displays: [Display] = [],
-        focusedDisplayId: Display.ID? = nil
+        displays: [LayoutDisplay] = [],
+        focusedDisplayID: LayoutDisplay.ID? = nil
     ) {
         self.displays = displays
-        self.focusedDisplayId = focusedDisplayId
+        self.focusedDisplayID = focusedDisplayID
     }
 
-    mutating func append(display: Display) {
+    mutating func append(display: LayoutDisplay) {
         if let index = displays.firstIndex(where: { $0.id == display.id }) {
             displays[index] = display
             return
@@ -28,7 +28,7 @@ public struct Root: Sendable {
         displays.append(display)
     }
 
-    mutating func remove(displayId: Display.ID) {
+    mutating func remove(displayId: LayoutDisplay.ID) {
         guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
             return
         }
@@ -36,18 +36,18 @@ public struct Root: Sendable {
         displays.remove(at: index)
     }
 
-    mutating func setFocusedSpaceId(
-        _ spaceId: Space.ID,
-        displayId: Display.ID
+    mutating func setFocusedSpaceID(
+        _ spaceId: LayoutSpace.ID,
+        displayId: LayoutDisplay.ID
     ) {
         guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
             return
         }
 
-        displays[index].focusedSpaceId = spaceId
+        displays[index].focusedSpaceID = spaceId
     }
 
-    mutating func append(space: Space, displayId: Display.ID) {
+    mutating func append(space: LayoutSpace, displayId: LayoutDisplay.ID) {
         guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
             return
         }
@@ -55,7 +55,7 @@ public struct Root: Sendable {
         displays[index].append(space: space)
     }
 
-    mutating func remove(spaceId: Space.ID, displayId: Display.ID) {
+    mutating func remove(spaceId: LayoutSpace.ID, displayId: LayoutDisplay.ID) {
         guard let index = displays.firstIndex(where: { $0.id == displayId }) else {
             return
         }
@@ -63,7 +63,7 @@ public struct Root: Sendable {
         displays[index].remove(spaceId: spaceId)
     }
 
-    mutating func appendTiledWindow(_ windowId: Window.ID, spaceId: Space.ID) {
+    mutating func appendTiledWindow(_ windowId: Window.ID, spaceId: LayoutSpace.ID) {
         for displayIndex in displays.indices {
             guard let spaceIndex = displays[displayIndex].spaces.firstIndex(
                 where: { $0.id == spaceId }
@@ -88,8 +88,8 @@ public struct Root: Sendable {
 
     mutating func moveWindow(
         _ windowId: Window.ID,
-        fromSpaceId: Space.ID?,
-        toSpaceId: Space.ID
+        fromSpaceId: LayoutSpace.ID?,
+        toSpaceId: LayoutSpace.ID
     ) {
         // TODO: This naive full graph scan is fine for now, but we should
         // likely maintain a windowId -> location index once move/remove gets hot.
@@ -114,7 +114,7 @@ public struct Root: Sendable {
         for displayIndex in displays.indices {
             for spaceIndex in displays[displayIndex].spaces.indices {
                 let contains =
-                    displays[displayIndex].spaces[spaceIndex].windowIds.contains(windowId)
+                    displays[displayIndex].spaces[spaceIndex].windowIDs.contains(windowId)
 
                 if contains {
                     displays[displayIndex].spaces[spaceIndex].focusedWindow = windowId
@@ -124,26 +124,26 @@ public struct Root: Sendable {
     }
 }
 
-public struct Display: Identifiable, Sendable {
+public struct LayoutDisplay: Identifiable, Sendable {
     public var id: String
-    public var spaces: [Space]
-    public var focusedSpaceId: Space.ID
+    public var spaces: [LayoutSpace]
+    public var focusedSpaceID: LayoutSpace.ID
 
     public init(
         id: String,
-        spaces: [Space],
-        focusedSpaceId: Space.ID
+        spaces: [LayoutSpace],
+        focusedSpaceID: LayoutSpace.ID
     ) {
         self.id = id
         self.spaces = spaces
-        self.focusedSpaceId = focusedSpaceId
+        self.focusedSpaceID = focusedSpaceID
     }
 
-    var focusedSpace: Space? {
-        spaces.first { $0.id == focusedSpaceId }
+    var focusedSpace: LayoutSpace? {
+        spaces.first { $0.id == focusedSpaceID }
     }
 
-    mutating func append(space: Space) {
+    mutating func append(space: LayoutSpace) {
         if let index = spaces.firstIndex(where: { $0.id == space.id }) {
             spaces[index] = space
             return
@@ -152,7 +152,7 @@ public struct Display: Identifiable, Sendable {
         spaces.append(space)
     }
 
-    mutating func remove(spaceId: Space.ID) {
+    mutating func remove(spaceId: LayoutSpace.ID) {
         guard let index = spaces.firstIndex(where: { $0.id == spaceId }) else {
             return
         }
@@ -161,21 +161,21 @@ public struct Display: Identifiable, Sendable {
     }
 }
 
-public struct Space: Identifiable, Sendable {
+public struct LayoutSpace: Identifiable, Sendable {
     public var id: CGSSpaceID
     public var tiledRoot: Container?
-    public var floatingWindowIds: [Window.ID]
+    public var floatingWindowIDs: [Window.ID]
     public var focusedWindow: Window.ID?
 
     public init(
         id: CGSSpaceID,
         tiledRoot: Container? = nil,
-        floatingWindowIds: [Window.ID] = [],
+        floatingWindowIDs: [Window.ID] = [],
         focusedWindow: Window.ID? = nil
     ) {
         self.id = id
         self.tiledRoot = tiledRoot
-        self.floatingWindowIds = floatingWindowIds
+        self.floatingWindowIDs = floatingWindowIDs
         self.focusedWindow = focusedWindow
     }
 
@@ -204,7 +204,7 @@ public struct Space: Identifiable, Sendable {
 
     mutating func removeWindow(_ windowId: Window.ID) {
         tiledRoot = tiledRoot?.removing(windowId: windowId)
-        floatingWindowIds.removeAll { $0 == windowId }
+        floatingWindowIDs.removeAll { $0 == windowId }
 
         if focusedWindow == windowId {
             focusedWindow = nil
@@ -212,9 +212,9 @@ public struct Space: Identifiable, Sendable {
     }
 }
 
-extension Space {
-    var windowIds: [Window.ID] {
-        (tiledRoot?.windowIds() ?? []) + floatingWindowIds
+extension LayoutSpace {
+    var windowIDs: [Window.ID] {
+        (tiledRoot?.windowIDs() ?? []) + floatingWindowIDs
     }
 }
 
@@ -229,13 +229,13 @@ public indirect enum Container: Sendable, Equatable {
 }
 
 private extension Container {
-    func windowIds() -> [Window.ID] {
+    func windowIDs() -> [Window.ID] {
         switch self {
         case let .leaf(windowId):
             [windowId]
         case let .stack(_, containers):
             containers.reduce(into: [Window.ID]()) { result, element in
-                result.append(contentsOf: element.windowIds())
+                result.append(contentsOf: element.windowIDs())
             }
         }
     }

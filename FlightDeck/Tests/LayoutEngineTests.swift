@@ -7,6 +7,7 @@
 
 import CoreGraphics
 @testable import FlightDeck
+import GroundControl
 import Testing
 
 struct LayoutEngineTests {
@@ -117,9 +118,9 @@ private enum Fixture {
     }
 
     enum WindowID {
-        static let terminal: WindowId = 1001
-        static let browser: WindowId = 1002
-        static let notes: WindowId = 1003
+        static let terminal: GroundControl.Window.ID = 1001
+        static let browser: GroundControl.Window.ID = 1002
+        static let notes: GroundControl.Window.ID = 1003
     }
 
     enum Frame {
@@ -128,25 +129,25 @@ private enum Fixture {
     }
 
     enum Geometry {
-        static let main: [Space.ID: CGRect] = [SpaceID.primary: Frame.display]
-        static let empty: [Space.ID: CGRect] = [:]
-        static let twoDisplays: [Space.ID: CGRect] = [
+        static let main: [GroundControl.Space.ID: CGRect] = [SpaceID.primary: Frame.display]
+        static let empty: [GroundControl.Space.ID: CGRect] = [:]
+        static let twoDisplays: [GroundControl.Space.ID: CGRect] = [
             SpaceID.primary: Frame.display,
             SpaceID.secondary: Frame.external
         ]
     }
 
     enum SpaceFixture {
-        static let empty = FlightDeck.Space(id: SpaceID.primary)
+        static let empty = FlightDeck.LayoutSpace(id: SpaceID.primary)
 
-        static let oneTiledWindow = FlightDeck.Space(
+        static let oneTiledWindow = FlightDeck.LayoutSpace(
             id: SpaceID.primary,
             tiledRoot: .stack(direction: .horizontal, children: [
                 .leaf(windowId: WindowID.terminal)
             ])
         )
 
-        static let twoTiledWindows = FlightDeck.Space(
+        static let twoTiledWindows = FlightDeck.LayoutSpace(
             id: SpaceID.primary,
             tiledRoot: .stack(direction: .horizontal, children: [
                 .leaf(windowId: WindowID.terminal),
@@ -154,7 +155,7 @@ private enum Fixture {
             ])
         )
 
-        static let threeTiledWindows = FlightDeck.Space(
+        static let threeTiledWindows = FlightDeck.LayoutSpace(
             id: SpaceID.primary,
             tiledRoot: .stack(direction: .horizontal, children: [
                 .leaf(windowId: WindowID.terminal),
@@ -163,7 +164,7 @@ private enum Fixture {
             ])
         )
 
-        static let nestedStack = FlightDeck.Space(
+        static let nestedStack = FlightDeck.LayoutSpace(
             id: SpaceID.primary,
             tiledRoot: .stack(direction: .horizontal, children: [
                 .leaf(windowId: WindowID.terminal),
@@ -174,7 +175,7 @@ private enum Fixture {
             ])
         )
 
-        static let focusedMiddleWindow = FlightDeck.Space(
+        static let focusedMiddleWindow = FlightDeck.LayoutSpace(
             id: SpaceID.primary,
             tiledRoot: .stack(direction: .horizontal, children: [
                 .leaf(windowId: WindowID.terminal),
@@ -184,7 +185,7 @@ private enum Fixture {
             focusedWindow: WindowID.browser
         )
 
-        static let nonFocused = FlightDeck.Space(
+        static let nonFocused = FlightDeck.LayoutSpace(
             id: SpaceID.secondary,
             tiledRoot: .stack(direction: .horizontal, children: [
                 .leaf(windowId: WindowID.terminal)
@@ -193,72 +194,72 @@ private enum Fixture {
     }
 
     enum DisplayFixture {
-        static let empty = FlightDeck.Display(
+        static let empty = FlightDeck.LayoutDisplay(
             id: DisplayID.main,
             spaces: [SpaceFixture.empty],
-            focusedSpaceId: SpaceID.primary
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let oneTiledWindow = FlightDeck.Display(
+        static let oneTiledWindow = FlightDeck.LayoutDisplay(
             id: DisplayID.main,
             spaces: [SpaceFixture.oneTiledWindow],
-            focusedSpaceId: SpaceID.primary
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let twoTiledWindows = FlightDeck.Display(
+        static let twoTiledWindows = FlightDeck.LayoutDisplay(
             id: DisplayID.main,
             spaces: [SpaceFixture.twoTiledWindows],
-            focusedSpaceId: SpaceID.primary
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let threeTiledWindows = FlightDeck.Display(
+        static let threeTiledWindows = FlightDeck.LayoutDisplay(
             id: DisplayID.main,
             spaces: [SpaceFixture.threeTiledWindows],
-            focusedSpaceId: SpaceID.primary
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let nestedStack = FlightDeck.Display(
+        static let nestedStack = FlightDeck.LayoutDisplay(
             id: DisplayID.main,
             spaces: [SpaceFixture.nestedStack],
-            focusedSpaceId: SpaceID.primary
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let focusedMiddleWindow = FlightDeck.Display(
+        static let focusedMiddleWindow = FlightDeck.LayoutDisplay(
             id: DisplayID.main,
             spaces: [SpaceFixture.focusedMiddleWindow],
-            focusedSpaceId: SpaceID.primary
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let nonFocusedSpaceHasWindows = FlightDeck.Display(
+        static let nonFocusedSpaceHasWindows = FlightDeck.LayoutDisplay(
             id: DisplayID.main,
             spaces: [SpaceFixture.empty, SpaceFixture.nonFocused],
-            focusedSpaceId: SpaceID.primary
+            focusedSpaceID: SpaceID.primary
         )
 
-        static let external = FlightDeck.Display(
+        static let external = FlightDeck.LayoutDisplay(
             id: DisplayID.external,
             spaces: [SpaceFixture.oneTiledWindow],
-            focusedSpaceId: SpaceID.secondary
+            focusedSpaceID: SpaceID.secondary
         )
     }
 
     enum RootFixture {
-        static let empty = Root()
+        static let empty = LayoutRoot()
 
-        static let emptyDisplay = Root(displays: [DisplayFixture.empty])
+        static let emptyDisplay = LayoutRoot(displays: [DisplayFixture.empty])
 
-        static let oneTiledWindow = Root(displays: [DisplayFixture.oneTiledWindow])
+        static let oneTiledWindow = LayoutRoot(displays: [DisplayFixture.oneTiledWindow])
 
-        static let twoTiledWindows = Root(displays: [DisplayFixture.twoTiledWindows])
+        static let twoTiledWindows = LayoutRoot(displays: [DisplayFixture.twoTiledWindows])
 
-        static let threeTiledWindows = Root(displays: [DisplayFixture.threeTiledWindows])
+        static let threeTiledWindows = LayoutRoot(displays: [DisplayFixture.threeTiledWindows])
 
-        static let nestedStack = Root(displays: [DisplayFixture.nestedStack])
+        static let nestedStack = LayoutRoot(displays: [DisplayFixture.nestedStack])
 
-        static let focusedMiddleWindow = Root(displays: [DisplayFixture.focusedMiddleWindow])
+        static let focusedMiddleWindow = LayoutRoot(displays: [DisplayFixture.focusedMiddleWindow])
 
-        static let nonFocusedSpaceHasWindows = Root(displays: [DisplayFixture.nonFocusedSpaceHasWindows])
+        static let nonFocusedSpaceHasWindows = LayoutRoot(displays: [DisplayFixture.nonFocusedSpaceHasWindows])
 
-        static let missingGeometry = Root(displays: [DisplayFixture.oneTiledWindow])
+        static let missingGeometry = LayoutRoot(displays: [DisplayFixture.oneTiledWindow])
     }
 }

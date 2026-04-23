@@ -10,11 +10,13 @@ import Foundation
 import GroundControl
 
 public struct SpaceGeometry {
-    let spaceFrames: [Space.ID: CGRect]
+    let spaceFrames: [GroundControl.Space.ID: CGRect]
 }
 
 public enum LayoutEngine {
-    public static func computeLayout(for root: Root, spaceGeometry: [Space.ID: CGRect]) -> LayoutPlan {
+    public static func computeLayout(for root: LayoutRoot,
+                                     spaceGeometry: [GroundControl.Space.ID: CGRect]) -> LayoutPlan
+    {
         var result = [Window.ID: WindowLayout]()
         for space in root.displays.compactMap(\.focusedSpace) {
             guard let rect = spaceGeometry[space.id] else { continue }
@@ -24,7 +26,7 @@ public enum LayoutEngine {
         return .init(windows: result)
     }
 
-    private static func computeLayout(for space: Space, geometry: CGRect) -> LayoutPlan {
+    private static func computeLayout(for space: LayoutSpace, geometry: CGRect) -> LayoutPlan {
         guard let root = space.tiledRoot else {
             return .empty
         }

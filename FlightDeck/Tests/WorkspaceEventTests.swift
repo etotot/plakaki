@@ -60,14 +60,14 @@ struct WorkspaceEventTests {
 
         var root = await graph.snapshot()
         #expect(
-            root.displays[0].focusedSpaceId == EventFixture.SpaceID.primary
+            root.displays[0].focusedSpaceID == EventFixture.SpaceID.primary
         )
 
         await graph.handle(EventFixture.Observation.activeSpaceChanged)
 
         root = await graph.snapshot()
         #expect(
-            root.displays[0].focusedSpaceId == EventFixture.SpaceID.secondary
+            root.displays[0].focusedSpaceID == EventFixture.SpaceID.secondary
         )
     }
 
@@ -182,36 +182,36 @@ struct WorkspaceEventTests {
         let graph = WorkspaceGraph(workspace: EventFixture.CommandWorkspace.spaceFocusTarget)
 
         var root = await graph.snapshot()
-        #expect(root.displays[0].focusedSpaceId == EventFixture.SpaceID.primary)
+        #expect(root.displays[0].focusedSpaceID == EventFixture.SpaceID.primary)
 
         await graph.handle(EventFixture.Command.focusSpace)
 
         root = await graph.snapshot()
-        #expect(root.displays[0].focusedSpaceId == EventFixture.SpaceID.secondary)
+        #expect(root.displays[0].focusedSpaceID == EventFixture.SpaceID.secondary)
     }
 
     @Test func focusDisplay() async {
         let graph = WorkspaceGraph(workspace: EventFixture.CommandWorkspace.displayFocusTarget)
 
         var root = await graph.snapshot()
-        #expect(root.focusedDisplayId == EventFixture.DisplayID.main)
+        #expect(root.focusedDisplayID == EventFixture.DisplayID.main)
 
         await graph.handle(EventFixture.Command.focusDisplay)
 
         root = await graph.snapshot()
-        #expect(root.focusedDisplayId == EventFixture.DisplayID.external)
+        #expect(root.focusedDisplayID == EventFixture.DisplayID.external)
     }
 
     @Test func toggleFloating() async {
         let graph = WorkspaceGraph(workspace: EventFixture.CommandWorkspace.floatingToggleTarget)
 
         var root = await graph.snapshot()
-        #expect(root.displays[0].spaces[0].floatingWindowIds.isEmpty)
+        #expect(root.displays[0].spaces[0].floatingWindowIDs.isEmpty)
 
         await graph.handle(EventFixture.Command.toggleFloating)
 
         root = await graph.snapshot()
-        #expect(root.displays[0].spaces[0].floatingWindowIds == [EventFixture.WindowID.terminal])
+        #expect(root.displays[0].spaces[0].floatingWindowIDs == [EventFixture.WindowID.terminal])
     }
 }
 
@@ -227,8 +227,8 @@ private enum EventFixture {
     }
 
     enum WindowID {
-        static let terminal: WindowId = 1001
-        static let browser: WindowId = 1002
+        static let terminal: GroundControl.Window.ID = 1001
+        static let browser: GroundControl.Window.ID = 1002
     }
 
     enum WindowFixture {

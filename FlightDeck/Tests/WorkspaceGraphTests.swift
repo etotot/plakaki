@@ -29,7 +29,7 @@ struct WorkspaceGraphTests {
         let graph = WorkspaceGraph(workspace: Fixture.Workspace.activeSecondarySpace)
         let root = await graph.snapshot()
 
-        #expect(root.displays[0].focusedSpaceId == Fixture.SpaceID.secondary)
+        #expect(root.displays[0].focusedSpaceID == Fixture.SpaceID.secondary)
     }
 
     @Test func spacesArePreservedInOrder() async {
@@ -122,11 +122,11 @@ private enum Fixture {
     }
 
     enum WindowID {
-        static let terminal: WindowId = 1001
-        static let browser: WindowId = 1002
-        static let notes: WindowId = 1003
-        static let minimized: WindowId = 1004
-        static let dialog: WindowId = 1005
+        static let terminal: GroundControl.Window.ID = 1001
+        static let browser: GroundControl.Window.ID = 1002
+        static let notes: GroundControl.Window.ID = 1003
+        static let minimized: GroundControl.Window.ID = 1004
+        static let dialog: GroundControl.Window.ID = 1005
     }
 
     enum WindowFixture {

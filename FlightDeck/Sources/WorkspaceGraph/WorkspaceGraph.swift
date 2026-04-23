@@ -8,13 +8,13 @@
 import GroundControl
 
 public actor WorkspaceGraph {
-    private var root: Root
+    private var root: LayoutRoot
 
     public init(workspace: GroundControl.Workspace) {
         root = Self.transform(workspace: workspace)
     }
 
-    public func snapshot() -> Root {
+    public func snapshot() -> LayoutRoot {
         root
     }
 
@@ -34,13 +34,13 @@ public actor WorkspaceGraph {
         case let .focusWindow(windowId):
             root.focusWindow(windowId)
         case let .focusSpace(spaceId, displayId):
-            root.setFocusedSpaceId(spaceId, displayId: displayId)
+            root.setFocusedSpaceID(spaceId, displayId: displayId)
         case let .focusDisplay(displayId):
             guard root.displays.contains(where: { $0.id == displayId }) else {
                 return
             }
 
-            root.focusedDisplayId = displayId
+            root.focusedDisplayID = displayId
         case let .toggleFloating(windowId):
             toggleFloating(windowId)
         }
@@ -51,18 +51,18 @@ public actor WorkspaceGraph {
         // likely maintain a windowId -> location index once move/remove gets hot.
         for displayIndex in root.displays.indices {
             for spaceIndex in root.displays[displayIndex].spaces.indices {
-                if root.displays[displayIndex].spaces[spaceIndex].floatingWindowIds.contains(windowId) {
-                    root.displays[displayIndex].spaces[spaceIndex].floatingWindowIds.removeAll { $0 == windowId }
+                if root.displays[displayIndex].spaces[spaceIndex].floatingWindowIDs.contains(windowId) {
+                    root.displays[displayIndex].spaces[spaceIndex].floatingWindowIDs.removeAll { $0 == windowId }
                     root.displays[displayIndex].spaces[spaceIndex].appendTiledWindow(windowId)
                     return
                 }
 
-                guard root.displays[displayIndex].spaces[spaceIndex].windowIds.contains(windowId) else {
+                guard root.displays[displayIndex].spaces[spaceIndex].windowIDs.contains(windowId) else {
                     continue
                 }
 
                 root.displays[displayIndex].spaces[spaceIndex].removeWindow(windowId)
-                root.displays[displayIndex].spaces[spaceIndex].floatingWindowIds.append(windowId)
+                root.displays[displayIndex].spaces[spaceIndex].floatingWindowIDs.append(windowId)
                 return
             }
         }
@@ -81,7 +81,7 @@ public actor WorkspaceGraph {
             root.remove(displayId: displayId)
 
         case let .activeSpaceChanged(displayId, spaceId):
-            root.setFocusedSpaceId(spaceId, displayId: displayId)
+            root.setFocusedSpaceID(spaceId, displayId: displayId)
 
         case let .spaceAdded(space, displayId):
             root.append(space: Self.transform(space: space), displayId: displayId)
@@ -119,26 +119,26 @@ public actor WorkspaceGraph {
 
     // TODO: Consider moving to separate file
 
-    private static func transform(workspace: GroundControl.Workspace) -> Root {
-        Root(
+    private static func transform(workspace: GroundControl.Workspace) -> LayoutRoot {
+        LayoutRoot(
             displays: workspace.displays.map { transform(display: $0) },
-            focusedDisplayId: workspace.focusedDisplayID ?? workspace.displays.first?.id
+            focusedDisplayID: workspace.focusedDisplayID ?? workspace.displays.first?.id
         )
     }
 
-    private static func transform(display: GroundControl.Display) -> Display {
-        Display(
+    private static func transform(display: GroundControl.Display) -> LayoutDisplay {
+        LayoutDisplay(
             id: display.id,
             spaces: display.spaces.map { transform(space: $0) },
-            focusedSpaceId: display.focusedSpaceID
+            focusedSpaceID: display.focusedSpaceID
         )
     }
 
-    private static func transform(space: GroundControl.Space) -> Space {
-        Space(
+    private static func transform(space: GroundControl.Space) -> LayoutSpace {
+        LayoutSpace(
             id: space.id,
             tiledRoot: transform(windows: space.windows),
-            floatingWindowIds: [], // TODO: Will have to apply floating rules there when supported
+            floatingWindowIDs: [], // TODO: Will have to apply floating rules there when supported
             focusedWindow: space.focusedWindowID
         )
     }
