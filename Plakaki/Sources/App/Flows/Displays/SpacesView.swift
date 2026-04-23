@@ -11,44 +11,46 @@ import Observation
 import SwiftUI
 
 struct SpacesView: View {
-    @Dependency(\.spaceManager) private var spaceManager
+    @Dependency(\.workspaceMonitor) private var workspaceMonitor
 
-    let space: ManagedSpace
+    let space: GroundControl.Space
 
-    @State private var windowIDs: [CGSWindowID] = []
+    @State private var windows: [GroundControl.Window] = []
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Space \(space.managedSpaceID)")
+                Text("Space \(space.id)")
                     .font(.headline)
 
-                Text(space.uuid ?? "No UUID")
+                Text("\(space.id)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            if windowIDs.isEmpty {
+            if windows.isEmpty {
                 ContentUnavailableView(
                     "No Windows",
                     systemImage: "macwindow",
                     description: Text("No windows were found in this space.")
                 )
             } else {
-                List(windowIDs, id: \.self) { windowID in
-                    Text("Window \(windowID)")
+                List(windows, id: \.self) { window in
+                    Text("Window \(window.id)")
                         .font(.body.monospacedDigit())
                 }
             }
         }
         .padding()
         .navigationTitle("Space")
-        .task(id: space.managedSpaceID) {
-            windowIDs = spaceManager.readWindows(space)
+        .task(id: space.id) {
+            windows = await workspaceMonitor.readWindows(space.id)
         }
         .toolbar {
             Button("Reload") {
-                windowIDs = spaceManager.readWindows(space)
+                Task {
+                    windows = await workspaceMonitor.readWindows(space.id)
+                }
             }
         }
     }
@@ -56,12 +58,10 @@ struct SpacesView: View {
 
 #Preview {
     SpacesView(
-        space: ManagedSpace(
-            managedSpaceID: 1,
-            id64: 1,
-            uuid: "preview-space-1",
-            type: 0,
-            wsid: 1
+        space: GroundControl.Space(
+            id: 0,
+            windowLookupID: 0,
+            windows: []
         )
     )
 }

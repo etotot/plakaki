@@ -36,7 +36,7 @@ extension NSScreen {
 // MARK: - Geometry builder
 
 enum DisplayGeometry {
-    static func spaceGeometry(for displays: [Display]) -> [Space.ID: CGRect] {
+    static func spaceGeometry(for displays: [FlightDeck.Display]) -> [FlightDeck.Space.ID: CGRect] {
         let screensByIdentifier = Dictionary(
             uniqueKeysWithValues: NSScreen.screens.compactMap { screen -> (String, NSScreen)? in
                 guard let id = screen.displayIdentifier else { return nil }
@@ -44,14 +44,16 @@ enum DisplayGeometry {
             }
         )
 
-        var result: [Space.ID: CGRect] = [:]
+        var result: [GroundControl.Space.ID: CGRect] = [:]
         for display in displays {
             guard let screen = screensByIdentifier[display.id] else { continue }
             let frame = screen.visibleFrame
+
             for space in display.spaces {
                 result[space.id] = frame
             }
         }
+
         return result
     }
 }

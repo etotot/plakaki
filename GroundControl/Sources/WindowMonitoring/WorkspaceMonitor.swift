@@ -42,12 +42,14 @@ public actor WorkspaceMonitor {
         try enrich(ManagedSpacesReader.workspace())
     }
 
-    public func setFrame(_ frame: CGRect, forWindowID windowID: CGSWindowID) throws {
+    public func setFrame(_ frame: CGRect, forWindowID windowID: CGSWindowID) async throws {
         guard let element = windowElements[windowID] else {
             return
         }
 
-        try element.setFrame(frame)
+        try await MainActor.run {
+            try element.setFrame(frame)
+        }
     }
 
     private func enrich(_ workspace: Workspace) -> Workspace {

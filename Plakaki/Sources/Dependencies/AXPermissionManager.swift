@@ -8,21 +8,18 @@
 @preconcurrency import ApplicationServices
 import Dependencies
 import Foundation
+import GroundControl
 
 struct AXPermissionManager {
-    var checkAxStatus: @Sendable (_ triggerPrompt: Bool) -> Bool
+    var isTrusted: @Sendable (_ triggerPrompt: Bool) -> Bool
     var openSystemSettings: @Sendable () -> Void
 }
 
 extension AXPermissionManager: DependencyKey {
     static var liveValue: Self {
         Self(
-            checkAxStatus: { (triggerPrompt: Bool) -> Bool in
-                let promptKey: String = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-                let options: CFDictionary = [promptKey: triggerPrompt] as CFDictionary
-                let trusted: Bool = AXIsProcessTrustedWithOptions(options)
-
-                return trusted
+            isTrusted: { (triggerPrompt: Bool) -> Bool in
+                return AXPermissionReader.isTrusted(triggerPrompt: triggerPrompt)
             },
             openSystemSettings: {
                 fatalError("Not implemented")
