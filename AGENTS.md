@@ -28,6 +28,8 @@
 - Prefer the higher-level Tuist build and test commands above for agent validation because they understand Tuist projects and reporting.
 - Use `tuist xcodebuild build ...` or `tuist xcodebuild test ...` only when raw `xcodebuild` arguments or Tuist build/test insights are specifically needed. These commands forward arguments to `xcodebuild`; generate first with `mise run generate` when the workspace may be stale.
 - If a test run fails, inspect the latest test results with `tuist inspect test` when useful.
+- Tuist and xcodebuild output can be very verbose. When build or test output is needed in chat context, filter it to the actionable lines instead of pasting the full log. Keep Swift diagnostics, failed command summaries, test failures, and the Tuist session log path. Omit routine graph loading, project generation, dependency-order notes, file-list writes, plist processing, and successful compile lines.
+- For failed builds, prefer a compact command such as `tuist build run Plakaki --generate 2>&1 | rg -N "^(\\[x\\]|✖|The command|\\s*(SwiftCompile|Building workspace)|\\s*Check out the logs at|.*:[0-9]+:[0-9]+: (error|warning):)"` when investigating errors. If the filter hides needed context, rerun or inspect the referenced Tuist log file directly.
 
 ## Mise Tasks
 
