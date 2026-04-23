@@ -1,7 +1,7 @@
 import Foundation
 
-public enum ManagedSpacesReader {
-    public static func workspace() throws -> Workspace {
+enum ManagedSpacesReader {
+    static func workspace() throws -> Workspace {
         let displays = try displays()
         return Workspace(
             displays: displays,
@@ -9,11 +9,11 @@ public enum ManagedSpacesReader {
         )
     }
 
-    public static func displays() throws -> [Display] {
+    static func displays() throws -> [Display] {
         try CGSPrivateAPI.copyManagedDisplaySpaces().map(parseDisplay)
     }
 
-    public static func windows(for space: Space) throws -> [Window] {
+    static func windows(for space: Space) throws -> [Window] {
         guard let windowLookupID = space.windowLookupID else {
             return []
         }
@@ -21,15 +21,15 @@ public enum ManagedSpacesReader {
         return try windows(forSpaceID64: windowLookupID)
     }
 
-    public static func windows(forSpaceID64 spaceID64: UInt64) throws -> [Window] {
+    static func windows(forSpaceID64 spaceID64: UInt64) throws -> [Window] {
         try CGSPrivateAPI.copyWindows(forSpaceID64: spaceID64).map(makeWindow)
     }
 
-    public static func spaces(forWindowID windowID: CGSWindowID) throws -> Set<CGSSpaceID> {
+    static func spaces(forWindowID windowID: CGSWindowID) throws -> Set<CGSSpaceID> {
         try Set(CGSPrivateAPI.copySpacesForWindows([windowID]))
     }
 
-    public static func spaces(forWindowIDs windowIDs: [CGSWindowID]) throws -> [CGSWindowID: Set<CGSSpaceID>] {
+    static func spaces(forWindowIDs windowIDs: [CGSWindowID]) throws -> [CGSWindowID: Set<CGSSpaceID>] {
         var result: [CGSWindowID: Set<CGSSpaceID>] = [:]
 
         for windowID in windowIDs {
