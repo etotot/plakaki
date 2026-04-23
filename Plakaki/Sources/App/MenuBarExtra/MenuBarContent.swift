@@ -15,6 +15,7 @@ private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "menuBar"
 
 struct MenuBarContent: View {
     @Dependency(\.workspaceMonitor) var workspaceMonitor
+    @Dependency(\.spaceMonitor) var spaceMonitor
 
     @State private var windowMap: [(GroundControl.Space, [GroundControl.Window])] = .init()
 
@@ -36,7 +37,7 @@ struct MenuBarContent: View {
         .task {
             await refresh()
 
-            for await _ in workspaceMonitor.activeSpaceChangedEvent() {
+            for await _ in spaceMonitor.spaceEvents().activeSpaceChangedEvents {
                 await refresh()
             }
         }

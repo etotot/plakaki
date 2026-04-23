@@ -18,8 +18,6 @@ struct WorkspaceMonitor {
     var readWindows: @Sendable (Space.ID) async -> [Window]
 
     var setFrame: @Sendable (CGRect, Window.ID) async -> Void
-
-    var activeSpaceChangedEvent: @Sendable () -> AsyncStream<Void>
 }
 
 private enum WorkspaceMonitorKey: DependencyKey {
@@ -39,19 +37,6 @@ private enum WorkspaceMonitorKey: DependencyKey {
                 .windows ?? []
         } setFrame: { frame, windowID in
             try? await monitor.setFrame(frame, forWindowID: windowID)
-        } activeSpaceChangedEvent: {
-            let (stream, continuation) = AsyncStream<Void>.makeStream()
-            let observer = NSWorkspace.shared.notificationCenter.addObserver(
-                forName: NSWorkspace.activeSpaceDidChangeNotification,
-                object: nil,
-                queue: nil
-            ) { _ in
-                continuation.yield()
-            }
-            continuation.onTermination = { _ in
-                NSWorkspace.shared.notificationCenter.removeObserver(observer)
-            }
-            return stream
         }
     }()
 }
