@@ -137,7 +137,7 @@ extension AXUIElement {
         optionalValue(for: kAXMainWindowAttribute as CFString)
     }
 
-    public func title() -> String? {
+    func title() -> String? {
         optionalValue(for: kAXTitleAttribute as CFString)
     }
 
