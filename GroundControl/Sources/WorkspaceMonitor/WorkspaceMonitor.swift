@@ -89,12 +89,15 @@ public actor WorkspaceMonitor {
         let uuid = UUID()
 
         subscribers[uuid] = continuation
-        logger.debug("Added workspace subscriber \(uuid, privacy: .public). Total subscribers: \(subscribers.count)")
         continuation.onTermination = { [weak self] _ in
             Task { [weak self] in
                 await self?.cancelSubscription(uuid)
             }
         }
+        let subscriberCount = subscribers.count
+        logger.debug(
+            "Added workspace subscriber \(uuid, privacy: .public). Total subscribers: \(subscriberCount)"
+        )
 
         if let currentWorkspace {
             continuation.yield(currentWorkspace)
@@ -117,7 +120,10 @@ public actor WorkspaceMonitor {
 
     private func cancelSubscription(_ uuid: UUID) {
         subscribers[uuid] = nil
-        logger.debug("Removed workspace subscriber \(uuid, privacy: .public). Total subscribers: \(subscribers.count)")
+        let subscriberCount = subscribers.count
+        logger.debug(
+            "Removed workspace subscriber \(uuid, privacy: .public). Total subscribers: \(subscriberCount)"
+        )
     }
 
     // MARK: - Application Monitoring

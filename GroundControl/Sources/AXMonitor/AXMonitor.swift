@@ -111,7 +111,8 @@ final class AXMonitor {
     }
 
     func startMonitoring() {
-        logger.info("Starting AX monitoring for application \(app.processIdentifier)")
+        let appPID = app.processIdentifier
+        logger.info("Starting AX monitoring for application \(appPID)")
         let refcon = Unmanaged.passUnretained(self).toOpaque()
 
         AXObserverAddNotification(
@@ -141,7 +142,8 @@ final class AXMonitor {
     }
 
     func stopMonitoring() {
-        logger.info("Stopping AX monitoring for application \(app.processIdentifier)")
+        let appPID = app.processIdentifier
+        logger.info("Stopping AX monitoring for application \(appPID)")
         for window in subscribedWindows.values {
             unsubscribeFromWindow(window)
         }
@@ -172,7 +174,8 @@ final class AXMonitor {
 
         let refcon = Unmanaged.passUnretained(self).toOpaque()
         subscribedWindows[windowID] = window
-        logger.debug("Subscribing to window \(windowID) for application \(app.processIdentifier)")
+        let appPID = app.processIdentifier
+        logger.debug("Subscribing to window \(windowID) for application \(appPID)")
 
         AXObserverAddNotification(
             axObserver,
@@ -201,7 +204,8 @@ final class AXMonitor {
             return
         }
 
-        logger.debug("Unsubscribing from window \(windowID) for application \(app.processIdentifier)")
+        let appPID = app.processIdentifier
+        logger.debug("Unsubscribing from window \(windowID) for application \(appPID)")
 
         AXObserverRemoveNotification(
             axObserver,
