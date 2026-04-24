@@ -165,7 +165,7 @@ public actor WorkspaceMonitor {
             "Starting monitoring for application \(app.processIdentifier), bundleID: \(app.bundleIdentifier ?? "<unknown>", privacy: .public)"
         )
         axMonitors[app.processIdentifier] = monitor
-        monitor.subscribeToAppNotifications() // TODO: AXMonitor should handle window subscriptions itself
+        monitor.startMonitoring()
 
         for window in monitor.windowElements() {
             do {
@@ -174,8 +174,6 @@ public actor WorkspaceMonitor {
             } catch {
                 logger.error("Failed to read window ID: \(String(describing: error))")
             }
-
-            monitor.subscribeToWindow(window)
         }
 
         axMonitorTasks[app.processIdentifier] = Task { [weak self] in
@@ -189,7 +187,10 @@ public actor WorkspaceMonitor {
         logger.info("Stopping monitoring for application \(pid)")
         axMonitorTasks[pid]?.cancel()
         axMonitorTasks[pid] = nil
+
+        axMonitors[pid]?.stopMonitoring()
         axMonitors[pid] = nil
+
         applications[pid] = nil
     }
 

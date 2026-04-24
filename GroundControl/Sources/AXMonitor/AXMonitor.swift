@@ -18,6 +18,8 @@ final class AXMonitor {
     private let axObserver: AXObserver
     private let threadPool: AXObserverThreadPool
 
+    private(set) var subscribedWindows: [CGSWindowID: AXUIElement] = .init()
+
     init?(app: NSRunningApplication, threadPool: AXObserverThreadPool) {
         self.app = app
         self.threadPool = threadPool
@@ -68,8 +70,11 @@ final class AXMonitor {
 
         switch notification as String {
         case kAXWindowCreatedNotification:
+            subscribeToWindow(element)
             publish(.windowCreated(appPID: app.processIdentifier, windowID: windowID))
         case kAXUIElementDestroyedNotification:
+            // TODO: Test that window id exists
+            unsubscribeFromWindow(element)
             publish(.windowDestroyed(appPID: app.processIdentifier, windowID: windowID))
         case kAXWindowMovedNotification:
             publish(.windowMoved(appPID: app.processIdentifier, windowID: windowID))
@@ -98,7 +103,7 @@ final class AXMonitor {
         appElement.discoverWindows()
     }
 
-    func subscribeToAppNotifications() {
+    func startMonitoring() {
         let refcon = Unmanaged.passUnretained(self).toOpaque()
 
         AXObserverAddNotification(
@@ -121,10 +126,43 @@ final class AXMonitor {
             kAXMainWindowChangedNotification as CFString,
             refcon
         )
+
+        for windowElement in windowElements() {
+            subscribeToWindow(windowElement)
+        }
     }
 
-    func subscribeToWindow(_ window: AXUIElement) {
+    func stopMonitoring() {
+        for window in subscribedWindows.values {
+            unsubscribeFromWindow(window)
+        }
+
+        AXObserverRemoveNotification(
+            axObserver,
+            appElement,
+            kAXWindowCreatedNotification as CFString
+        )
+
+        AXObserverRemoveNotification(
+            axObserver,
+            appElement,
+            kAXFocusedWindowChangedNotification as CFString
+        )
+
+        AXObserverRemoveNotification(
+            axObserver,
+            appElement,
+            kAXMainWindowChangedNotification as CFString
+        )
+    }
+
+    private func subscribeToWindow(_ window: AXUIElement) {
+        guard let windowID = try? window.windowID(), subscribedWindows[windowID] == nil else {
+            return
+        }
+
         let refcon = Unmanaged.passUnretained(self).toOpaque()
+        subscribedWindows[windowID] = window
 
         AXObserverAddNotification(
             axObserver,
@@ -146,5 +184,31 @@ final class AXMonitor {
             kAXWindowResizedNotification as CFString,
             refcon
         )
+    }
+
+    private func unsubscribeFromWindow(_ window: AXUIElement) {
+        guard let windowID = try? window.windowID(), subscribedWindows[windowID] != nil else {
+            return
+        }
+
+        AXObserverRemoveNotification(
+            axObserver,
+            window,
+            kAXUIElementDestroyedNotification as CFString
+        )
+
+        AXObserverRemoveNotification(
+            axObserver,
+            window,
+            kAXWindowMovedNotification as CFString
+        )
+
+        AXObserverRemoveNotification(
+            axObserver,
+            window,
+            kAXWindowResizedNotification as CFString
+        )
+
+        subscribedWindows[windowID] = nil
     }
 }
