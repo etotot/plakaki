@@ -16,6 +16,7 @@ public actor WorkspaceMonitor {
     private var axMonitors: [pid_t: AXMonitor] = [:]
     private var axMonitorTasks: [pid_t: Task<Void, Never>] = [:]
 
+    // TODO: Would it be better to remove applications array and rely on PIDs to get NSRunningApplication?
     private var applications: [pid_t: NSRunningApplication] = [:]
 
     private var windowElements: [CGSWindowID: AXUIElement] = [:]
@@ -54,7 +55,7 @@ public actor WorkspaceMonitor {
     public func startMonitoring() {
         guard monitoringTask == nil else { return }
 
-        enumerateApplications()
+        startMonitoringRunningApplications()
         currentWorkspace = try? enrich(ManagedSpacesReader.workspace())
 
         monitoringTask = Task { [weak self] in
@@ -108,7 +109,7 @@ public actor WorkspaceMonitor {
 
     // MARK: - Application Monitoring
 
-    private func enumerateApplications() {
+    private func startMonitoringRunningApplications() {
         let runningApplications = NSWorkspace.shared.runningApplications
         applications = runningApplications.reduce(into: [:]) { result, application in
             result[application.processIdentifier] = application
@@ -120,7 +121,14 @@ public actor WorkspaceMonitor {
             $0.activationPolicy == .regular
         }
 
-        for app in regularApplications {
+        let runningPIDs = Set(regularApplications.map(\.processIdentifier))
+        let monitoredPIDs = Set(axMonitors.keys)
+
+        for pid in monitoredPIDs.subtracting(runningPIDs) {
+            stopMonitoringApplication(pid: pid)
+        }
+
+        for app in regularApplications where !monitoredPIDs.contains(app.processIdentifier) {
             startMonitoringApplication(app)
         }
     }
