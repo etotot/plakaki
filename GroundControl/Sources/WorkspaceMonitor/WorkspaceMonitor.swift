@@ -13,7 +13,7 @@ private struct WindowMetadata {
 }
 
 public actor WorkspaceMonitor {
-    private var appMonitors: [pid_t: AppMonitor] = [:]
+    private var axMonitors: [pid_t: AXMonitor] = [:]
 
     private var applications: [pid_t: NSRunningApplication] = [:]
 
@@ -42,6 +42,10 @@ public actor WorkspaceMonitor {
 
     deinit {
         monitoringTask?.cancel()
+
+        for continuation in subscribers.values {
+            continuation.finish()
+        }
     }
 
     private var monitoringTask: Task<Void, Never>?
@@ -113,8 +117,9 @@ public actor WorkspaceMonitor {
         }
 
         for app in regularApplications {
-            let monitor = AppMonitor(app: app, threadPool: threadPool)
-            appMonitors[app.processIdentifier] = monitor
+            let monitor = AXMonitor(app: app, threadPool: threadPool)
+
+            axMonitors[app.processIdentifier] = monitor
             monitor?.subscribeToAppNotifications()
 
             for window in monitor?.windowElements() ?? [] {
