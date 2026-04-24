@@ -4,7 +4,7 @@ import CoreGraphics
 import Foundation
 import OSLog
 
-private let logger = Logger(subsystem: "xyz.etotot.Plakaki", category: "groundControl.windowMonitoring")
+private let logger = Logger(subsystem: "xyz.etotot.GroundControl", category: "WorkspaceMonitor")
 
 private struct WindowMetadata {
     let id: CGSWindowID
@@ -40,9 +40,11 @@ public actor WorkspaceMonitor {
 
     public init() {
         threadPool = SingleAXObserverThreadPool()
+        logger.info("WorkspaceMonitor initialized")
     }
 
     deinit {
+        logger.info("WorkspaceMonitor deinitializing")
         monitoringTask?.cancel()
 
         for continuation in subscribers.values {
@@ -53,7 +55,12 @@ public actor WorkspaceMonitor {
     private var monitoringTask: Task<Void, Never>?
 
     public func startMonitoring() {
-        guard monitoringTask == nil else { return }
+        guard monitoringTask == nil else {
+            logger.debug("startMonitoring ignored because monitoring is already active")
+            return
+        }
+
+        logger.info("Starting workspace monitoring")
 
         startMonitoringRunningApplications()
         currentWorkspace = try? enrich(ManagedSpacesReader.workspace())
@@ -67,9 +74,11 @@ public actor WorkspaceMonitor {
 
     public func workspace() throws -> Workspace {
         if let currentWorkspace {
+            logger.debug("Returning cached workspace snapshot")
             return currentWorkspace
         }
 
+        logger.debug("Building workspace snapshot on demand")
         return try enrich(ManagedSpacesReader.workspace())
     }
 
@@ -80,6 +89,7 @@ public actor WorkspaceMonitor {
         let uuid = UUID()
 
         subscribers[uuid] = continuation
+        logger.debug("Added workspace subscriber \(uuid, privacy: .public). Total subscribers: \(subscribers.count)")
         continuation.onTermination = { [weak self] _ in
             Task { [weak self] in
                 await self?.cancelSubscription(uuid)
@@ -95,9 +105,11 @@ public actor WorkspaceMonitor {
 
     public func setFrame(_ frame: CGRect, forWindowID windowID: CGSWindowID) async throws {
         guard let element = windowElements[windowID] else {
+            logger.debug("Ignoring setFrame for unknown window \(windowID)")
             return
         }
 
+        logger.debug("Setting frame for window \(windowID)")
         try await MainActor.run {
             try element.setFrame(frame)
         }
@@ -105,6 +117,7 @@ public actor WorkspaceMonitor {
 
     private func cancelSubscription(_ uuid: UUID) {
         subscribers[uuid] = nil
+        logger.debug("Removed workspace subscriber \(uuid, privacy: .public). Total subscribers: \(subscribers.count)")
     }
 
     // MARK: - Application Monitoring
@@ -124,6 +137,10 @@ public actor WorkspaceMonitor {
         let runningPIDs = Set(regularApplications.map(\.processIdentifier))
         let monitoredPIDs = Set(axMonitors.keys)
 
+        logger.info(
+            "Reconciling running applications. Regular apps: \(regularApplications.count), monitored apps: \(monitoredPIDs.count)"
+        )
+
         for pid in monitoredPIDs.subtracting(runningPIDs) {
             stopMonitoringApplication(pid: pid)
         }
@@ -134,12 +151,19 @@ public actor WorkspaceMonitor {
     }
 
     private func startMonitoringApplication(_ app: NSRunningApplication) {
-        guard axMonitors[app.processIdentifier] == nil else { return }
-
-        guard let monitor = AXMonitor(app: app, threadPool: threadPool) else {
+        guard axMonitors[app.processIdentifier] == nil else {
+            logger.debug("Application \(app.processIdentifier) is already being monitored")
             return
         }
 
+        guard let monitor = AXMonitor(app: app, threadPool: threadPool) else {
+            logger.error("Failed to create AXMonitor for application \(app.processIdentifier)")
+            return
+        }
+
+        logger.info(
+            "Starting monitoring for application \(app.processIdentifier), bundleID: \(app.bundleIdentifier ?? "<unknown>", privacy: .public)"
+        )
         axMonitors[app.processIdentifier] = monitor
         monitor.subscribeToAppNotifications() // TODO: AXMonitor should handle window subscriptions itself
 
@@ -162,6 +186,7 @@ public actor WorkspaceMonitor {
     }
 
     private func stopMonitoringApplication(pid: pid_t) {
+        logger.info("Stopping monitoring for application \(pid)")
         axMonitorTasks[pid]?.cancel()
         axMonitorTasks[pid] = nil
         axMonitors[pid] = nil
@@ -170,9 +195,12 @@ public actor WorkspaceMonitor {
 
     // MARK: - Event Management
 
-    private func handle(_: WorkspaceMonitorEvent) {}
+    private func handle(_ event: WorkspaceMonitorEvent) {
+        logger.debug("Received event: \(String(describing: event), privacy: .public)")
+    }
 
-    private func handleSpaceEvent(_: SpaceEvent) {
+    private func handleSpaceEvent(_ event: SpaceEvent) {
+        logger.debug("Handling space event: \(String(describing: event), privacy: .public)")
         // swiftlint:disable:next force_try
         currentWorkspace = try! enrich(ManagedSpacesReader.workspace())
     }
