@@ -14,6 +14,7 @@ private struct WindowMetadata {
 
 public actor WorkspaceMonitor {
     private var axMonitors: [pid_t: AXMonitor] = [:]
+    private var axMonitorTasks: [pid_t: Task<Void, Never>] = [:]
 
     private var applications: [pid_t: NSRunningApplication] = [:]
 
@@ -105,11 +106,14 @@ public actor WorkspaceMonitor {
         subscribers[uuid] = nil
     }
 
+    // MARK: - Application Monitoring
+
     private func enumerateApplications() {
         let runningApplications = NSWorkspace.shared.runningApplications
         applications = runningApplications.reduce(into: [:]) { result, application in
             result[application.processIdentifier] = application
         }
+
         windowMetadata = Self.readWindowMetadata()
 
         let regularApplications = runningApplications.filter {
@@ -117,25 +121,48 @@ public actor WorkspaceMonitor {
         }
 
         for app in regularApplications {
-            let monitor = AXMonitor(app: app, threadPool: threadPool)
+            startMonitoringApplication(app)
+        }
+    }
 
-            axMonitors[app.processIdentifier] = monitor
-            monitor?.subscribeToAppNotifications()
+    private func startMonitoringApplication(_ app: NSRunningApplication) {
+        guard axMonitors[app.processIdentifier] == nil else { return }
 
-            for window in monitor?.windowElements() ?? [] {
-                do {
-                    let windowID = try window.windowID()
-                    windowElements[windowID] = window
-                } catch {
-                    logger.error("Failed to read window ID: \(String(describing: error))")
-                }
+        guard let monitor = AXMonitor(app: app, threadPool: threadPool) else {
+            return
+        }
 
-                monitor?.subscribeToWindow(window)
+        axMonitors[app.processIdentifier] = monitor
+        monitor.subscribeToAppNotifications() // TODO: AXMonitor should handle window subscriptions itself
+
+        for window in monitor.windowElements() {
+            do {
+                let windowID = try window.windowID()
+                windowElements[windowID] = window
+            } catch {
+                logger.error("Failed to read window ID: \(String(describing: error))")
+            }
+
+            monitor.subscribeToWindow(window)
+        }
+
+        axMonitorTasks[app.processIdentifier] = Task { [weak self] in
+            for await event in monitor.events {
+                await self?.handle(.accessibility(event))
             }
         }
     }
 
+    private func stopMonitoringApplication(pid: pid_t) {
+        axMonitorTasks[pid]?.cancel()
+        axMonitorTasks[pid] = nil
+        axMonitors[pid] = nil
+        applications[pid] = nil
+    }
+
     // MARK: - Event Management
+
+    private func handle(_: WorkspaceMonitorEvent) {}
 
     private func handleSpaceEvent(_: SpaceEvent) {
         // swiftlint:disable:next force_try

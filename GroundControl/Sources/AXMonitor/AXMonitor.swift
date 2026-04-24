@@ -63,6 +63,7 @@ final class AXMonitor {
     }
 
     private func receive(notification: CFString, element: AXUIElement) {
+        // TODO: Should add/remove relevant subscriptions here(ex. window events)
         let windowID = try? element.windowID()
 
         switch notification as String {

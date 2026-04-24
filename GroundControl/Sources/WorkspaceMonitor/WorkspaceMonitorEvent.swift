@@ -7,8 +7,8 @@
 
 import Foundation
 
-private enum WorkspaceMonitorEvent {
+enum WorkspaceMonitorEvent {
     case space(SpaceEvent)
-//    case application(ApplicationEvent)
-//    case accessibility(AccessibilityEvent)
+    ///    case application(ApplicationEvent)
+    case accessibility(AXEvent)
 }
