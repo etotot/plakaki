@@ -1,6 +1,9 @@
 import AppKit
 @preconcurrency import ApplicationServices
 import Foundation
+import OSLog
+
+private let logger = Logger(subsystem: "xyz.etotot.GroundControl", category: "AXMonitor")
 
 enum AXEvent {
     case windowCreated(appPID: pid_t, windowID: CGSWindowID?)
@@ -47,6 +50,9 @@ final class AXMonitor {
         }
 
         axObserver = observer
+        logger.info(
+            "Initialized AXMonitor for application \(app.processIdentifier), bundleID: \(app.bundleIdentifier ?? "<unknown>", privacy: .public)"
+        )
 
         let thread = threadPool.thread(for: app.processIdentifier)
         thread.addSource(AXObserverGetRunLoopSource(observer))
@@ -61,11 +67,12 @@ final class AXMonitor {
     }
 
     private func publish(_ event: AXEvent) {
+        logger.debug("Publishing AX event: \(String(describing: event), privacy: .public)")
         continuation?.yield(event)
     }
 
     private func receive(notification: CFString, element: AXUIElement) {
-        // TODO: Should add/remove relevant subscriptions here(ex. window events)
+        logger.debug("Received AX notification: \(notification, privacy: .public)")
         let windowID = try? element.windowID()
 
         switch notification as String {
@@ -104,6 +111,7 @@ final class AXMonitor {
     }
 
     func startMonitoring() {
+        logger.info("Starting AX monitoring for application \(app.processIdentifier)")
         let refcon = Unmanaged.passUnretained(self).toOpaque()
 
         AXObserverAddNotification(
@@ -133,6 +141,7 @@ final class AXMonitor {
     }
 
     func stopMonitoring() {
+        logger.info("Stopping AX monitoring for application \(app.processIdentifier)")
         for window in subscribedWindows.values {
             unsubscribeFromWindow(window)
         }
@@ -163,6 +172,7 @@ final class AXMonitor {
 
         let refcon = Unmanaged.passUnretained(self).toOpaque()
         subscribedWindows[windowID] = window
+        logger.debug("Subscribing to window \(windowID) for application \(app.processIdentifier)")
 
         AXObserverAddNotification(
             axObserver,
@@ -190,6 +200,8 @@ final class AXMonitor {
         guard let windowID = try? window.windowID(), subscribedWindows[windowID] != nil else {
             return
         }
+
+        logger.debug("Unsubscribing from window \(windowID) for application \(app.processIdentifier)")
 
         AXObserverRemoveNotification(
             axObserver,
